@@ -36,6 +36,7 @@ class DatabaseHelper {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT,
             price REAL,
+            image Text,
             quantity INTEGER,
             description TEXT
           )
