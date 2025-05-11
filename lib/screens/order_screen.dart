@@ -4,6 +4,7 @@ class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _OrdersScreenState createState() => _OrdersScreenState();
 }
 

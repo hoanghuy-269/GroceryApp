@@ -4,6 +4,7 @@ class FavoriteScreen extends StatefulWidget {
   const FavoriteScreen({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _FavoriteScreenState createState() => _FavoriteScreenState();
 }
 
