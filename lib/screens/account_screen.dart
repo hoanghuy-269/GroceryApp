@@ -4,6 +4,7 @@ class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _AccountScreenState createState() => _AccountScreenState();
 }
 
