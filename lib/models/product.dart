@@ -1,38 +1,22 @@
+import 'package:floor/floor.dart';
 
+@Entity(tableName: 'Product') // Sửa @entity thành @Entity
 class Product {
+  @PrimaryKey(autoGenerate: true)
+  final int? id;
+
+  final String name;
+  final double price;
+  final String imgURL; // Sửa từ 'image' thành 'imgURL'
+  final int quantity;
+  final String description;
+
   Product({
+    this.id,
     required this.name,
-    required this.imgURL,
     required this.price,
+    required this.imgURL, // Đảm bảo tham số này cũng là imgURL
     required this.quantity,
     required this.description,
   });
-  String name;
-  String imgURL;
-  double price;
-  int quantity;
-  String description;
-
-  // chuyển đổi đối tượng thành Map lưu vào cơ sở dữ liệu
-
-  Map<String, dynamic> toMap() {
-    return {
-      'name': name,
-      'image': imgURL,
-      'price': price,
-      'quantity': quantity,
-      'description': description,
-    };
-  }
-
-  // hàm khởi tạo Product từ Map ( lấy dữ liệu từ cỏ sở dữ liêu )
-  factory Product.fromMap(Map<String, dynamic> map) {
-    return Product(
-      name: map['name'],
-      imgURL: map['image'],
-      price: map['price'],
-      quantity: map['quantity'],
-      description: map['description'],
-    );
-  }
 }
