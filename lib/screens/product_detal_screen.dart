@@ -20,11 +20,24 @@ class _ProductDetailState extends State<ProductDetail> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
-              child: Image.asset(
-                widget.product.imgURL,
-                height: 250,
-                fit: BoxFit.cover,
-              ),
+              child:
+                  widget.product.imgURL.startsWith('assets/')
+                      ? Image.asset(
+                        widget.product.imgURL,
+                        height: 250,
+                        fit: BoxFit.cover,
+                        errorBuilder:
+                            (context, error, stackTrace) =>
+                                const Icon(Icons.broken_image, size: 50),
+                      )
+                      : Image.network(
+                        widget.product.imgURL,
+                        height: 250,
+                        fit: BoxFit.cover,
+                        errorBuilder:
+                            (context, error, stackTrace) =>
+                                const Icon(Icons.broken_image, size: 50),
+                      ),
             ),
             const SizedBox(height: 16),
             Text(
@@ -38,22 +51,22 @@ class _ProductDetailState extends State<ProductDetail> {
             ),
             const SizedBox(height: 16),
             const Text(
-              "Mô tả ",
+              "Mô tả:",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             Text(widget.product.description),
             const SizedBox(height: 16),
-            Text(" Tồn Kho : ${widget.product.quantity}"),
+            Text("Tồn Kho: ${widget.product.quantity}"),
             const SizedBox(height: 24),
             Center(
               child: ElevatedButton.icon(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text(" Đã thêm vào giỏ hàng!")),
+                    const SnackBar(content: Text("Đã thêm vào giỏ hàng!")),
                   );
                 },
                 icon: const Icon(Icons.add_shopping_cart),
-                label: const Text(" Thêm vào giỏ hàng"),
+                label: const Text("Thêm vào giỏ hàng"),
               ),
             ),
           ],

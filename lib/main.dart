@@ -1,38 +1,33 @@
 import 'package:flutter/material.dart';
-//import 'package:grocery_app/screens/checkout_screen.dart';
-//import 'package:grocery_app/screens/order_failed_dialog.dart';
-import 'package:grocery_app/screens/order_failed_dialog.dart';
-
+import 'package:grocery_app/database/app_database.dart';
 import 'package:grocery_app/screens/botttom_navgation_srceen.dart';
-//import 'package:grocery_app/screens/home.dart';
-
-//import 'screens/account_screen.dart';
-//import 'screens/favourite_screen.dart';
-// import 'screens/order_screen.dart';
-import 'package:grocery_app/database/database_helper.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:grocery_app/screens/home.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await DatabaseHelper().database;
-  runApp(const MyApp());
+
+  // Khởi tạo cơ sở dữ liệu Floor
+  final database =
+      await $FloorAppDatabase.databaseBuilder('app_database.db').build();
+
+  runApp(MyApp(database: database));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final AppDatabase database;
+
+  const MyApp({super.key, required this.database});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'Grocery App',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-
-      home: const OrderFailedDialog(),
-
-   
-
+      home: const MyBottom(),
     );
   }
 }
