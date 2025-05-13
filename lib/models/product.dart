@@ -8,7 +8,7 @@ class Product {
   final String name;
   final double price;
   final String imgURL; 
-  final int quantity;
+  late final int quantity;
   final String description;
 
   Product({
@@ -19,4 +19,10 @@ class Product {
     required this.quantity,
     required this.description,
   });
+
+  @override
+  String toString() {
+    return 'Product{id: $id, name: $name, price: $price, imgURL: $imgURL, quantity: $quantity, description: $description}';
+  }
 }
+

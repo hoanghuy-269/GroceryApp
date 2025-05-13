@@ -113,6 +113,7 @@ class _$AppDatabase extends AppDatabase {
             'CREATE TABLE IF NOT EXISTS `OrderItem` (`id` INTEGER NOT NULL, `orderId` INTEGER NOT NULL, `productId` INTEGER NOT NULL, `quantity` INTEGER NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Wishlist` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `userId` INTEGER NOT NULL, `productId` INTEGER NOT NULL)');
+
         await callback?.onCreate?.call(database, version);
       },
     );
