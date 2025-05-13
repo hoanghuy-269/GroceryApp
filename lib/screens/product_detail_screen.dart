@@ -20,24 +20,15 @@ class _ProductDetailState extends State<ProductDetail> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
-              child:
-                  widget.product.imgURL.startsWith('assets/')
-                      ? Image.asset(
-                        widget.product.imgURL,
-                        height: 250,
-                        fit: BoxFit.cover,
-                        errorBuilder:
-                            (context, error, stackTrace) =>
-                                const Icon(Icons.broken_image, size: 50),
-                      )
-                      : Image.network(
-                        widget.product.imgURL,
-                        height: 250,
-                        fit: BoxFit.cover,
-                        errorBuilder:
-                            (context, error, stackTrace) =>
-                                const Icon(Icons.broken_image, size: 50),
-                      ),
+              child:  Image.asset(
+                    widget.product.imgURL,
+                    fit: BoxFit.fill,
+                    height: 200,
+                    width: double.infinity,
+                    errorBuilder:
+                        (context, error, stackTrace) =>
+                            const Icon(Icons.broken_image, size: 50),
+                  ),
             ),
             const SizedBox(height: 16),
             Text(

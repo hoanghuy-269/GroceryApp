@@ -4,7 +4,6 @@ import 'package:floor/floor.dart';
 class Product {
   @PrimaryKey(autoGenerate: true)
   final int? id;
-
   final String name;
   final double price;
   final String imgURL; 

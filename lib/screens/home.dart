@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_app/models/product.dart';
 import 'package:grocery_app/database/app_database.dart';
-import 'package:grocery_app/screens/product_detal_screen.dart';
+import 'ProductCart.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -22,43 +22,49 @@ class _HomeState extends State<Home> {
     _initDatabase();
   }
 
+  // hàm init chỉ tạo một lần giống oncreate
   Future<void> _initDatabase() async {
     _database =
         await $FloorAppDatabase.databaseBuilder('app_database.db').build();
     await _addSampleProducts();
-    // _loadProducts();
+    _loadProducts();
   }
 
+  // hàm add sản phẩm
   Future<void> _addSampleProducts() async {
-    final sampleProducts = [
-      Product(
-        name: 'Bánh Oreo',
-        price: 20000,
-        imgURL: 'assets/images/doan_banhoreo.png',
-        description: 'Sữa tươi nguyên chất.',
-        quantity: 100,
-      ),
-      Product(
-        name: 'Cocacola',
-        price: 10000,
-        imgURL: 'assets/images/doan_banhoreo.png',
-        description: 'Bánh mì tươi ngon.',
-        quantity: 50,
-      ),
-      Product(
-        name: 'Red Bull',
-        price: 30000,
-        imgURL: 'assets/images/douong_redbull.png',
-        description: 'Trái cây tươi ngon và bổ dưỡng.',
-        quantity: 75,
-      ),
-    ];
+    final xulisanpham = await _database.productDao.getAllProducts();
+    if (xulisanpham.isEmpty) {
+      final sampleProducts = [
+        Product(
+          name: 'Bánh Oreo',
+          price: 20,
+          imgURL: 'assets/images/doan_banhoreo.png',
+          description: 'Sữa tươi nguyên chất.',
+          quantity: 100,
+        ),
+        Product(
+          name: 'Cocacola',
+          price: 10,
+          imgURL: 'assets/images/doan_banhoreo.png',
+          description: 'Bánh mì tươi ngon.',
+          quantity: 50,
+        ),
+        Product(
+          name: 'Red Bull',
+          price: 30,
+          imgURL: 'assets/images/douong_redbull.png',
+          description: 'Trái cây tươi ngon và bổ dưỡng.',
+          quantity: 75,
+        ),
+      ];
 
-    for (final product in sampleProducts) {
-      await _database.productDao.insertProduct(product);
+      for (final product in sampleProducts) {
+        await _database.productDao.insertProduct(product);
+      }
     }
   }
 
+  // hàm load Sản phẩm
   Future<void> _loadProducts() async {
     try {
       final loadedProducts = await _database.productDao.getAllProducts();
@@ -125,7 +131,7 @@ class _HomeState extends State<Home> {
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
-                              childAspectRatio: 2 / 3.3,
+                              childAspectRatio: 3 / 4,
                               crossAxisSpacing: 10,
                               mainAxisSpacing: 10,
                             ),
@@ -137,120 +143,6 @@ class _HomeState extends State<Home> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-class ProductCart extends StatefulWidget {
-  final Product product;
-
-  const ProductCart({super.key, required this.product});
-
-  @override
-  State<ProductCart> createState() => _ProductCartState();
-}
-
-class _ProductCartState extends State<ProductCart> {
-  bool isFavorite = false;
-
-  void toggleFavorite() {
-    setState(() {
-      isFavorite = !isFavorite;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final product = widget.product;
-
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Stack để chồng hình và icon
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  topRight: Radius.circular(12),
-                ),
-                child: product.imgURL.startsWith('assets/')
-                    ? Image.asset(
-                        product.imgURL,
-                        fit: BoxFit.cover,
-                        height: 100,
-                        width: double.infinity,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Icon(Icons.broken_image, size: 50),
-                      )
-                    : Image.network(
-                        product.imgURL,
-                        fit: BoxFit.cover,
-                        height: 100,
-                        width: double.infinity,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Icon(Icons.broken_image, size: 50),
-                      ),
-              ),
-              Positioned(
-                top: 6,
-                right: 6,
-                child: InkWell(
-                  onTap: toggleFavorite,
-                  child: Icon(
-                    isFavorite ? Icons.favorite : Icons.favorite_border,
-                    color: isFavorite ? Colors.red : Colors.grey,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: Text(
-              product.name,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Text(
-              '${product.price.toStringAsFixed(3)} đ',
-              style: const TextStyle(
-                color: Colors.deepOrange,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Row(
-              children: [
-                Flexible(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Logic thêm vào giỏ hàng
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.shopping_cart),
-                        SizedBox(width: 8),
-                        Text('Thêm vào giỏ'),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
