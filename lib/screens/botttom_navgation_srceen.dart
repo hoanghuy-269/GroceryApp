@@ -2,10 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:grocery_app/models/product.dart';
 import 'home.dart';
 import 'favourite_screen.dart';
+
 import 'CartScreen.dart';
 
+import 'account_screen.dart';
+
+
 class MyBottom extends StatefulWidget {
-  const MyBottom({super.key});
+  final String userEmail;
+
+  const MyBottom({super.key, required this.userEmail});
 
   @override
   State<StatefulWidget> createState() => _MyBottomState();
@@ -13,6 +19,8 @@ class MyBottom extends StatefulWidget {
 
 class _MyBottomState extends State<MyBottom> {
   int _selected = 0;
+  late final List<Widget> _screens;
+
 
   // Khởi tạo danh sách yêu thích với danh sách trống
   List<Product> favoriteItems = []; // Danh sách yêu thích
@@ -34,6 +42,17 @@ class _MyBottomState extends State<MyBottom> {
       ),
       CartScreen(cartItems: [], cartProducts: [],), // Truyền giỏ hàng vào CartScreen
     ]);
+
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      const Home(),
+      const FavoriteScreen(),
+      const Home(),
+      AccountScreen(email: widget.userEmail),
+    ];
+
   }
 
   @override
@@ -47,18 +66,20 @@ class _MyBottomState extends State<MyBottom> {
         selectedItemColor: Colors.blueAccent,
         unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: "Home",
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite),
             label: "Favorite",
           ),
+
           BottomNavigationBarItem(
             icon: Icon(Icons.shopping_cart),
             label: "Cart",
           ),
+
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+
         ],
       ),
     );

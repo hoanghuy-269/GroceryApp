@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:grocery_app/database/app_database.dart';
 import 'package:grocery_app/screens/botttom_navgation_srceen.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:grocery_app/screens/home.dart';
+import 'package:grocery_app/screens/print.dart';
+import 'package:grocery_app/screens/account_screen.dart';
+import 'package:grocery_app/screens/login_screen.dart';
 
 
 
@@ -29,7 +31,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyBottom(),
+      home: const LoginScreen(),
     );
   }
 }
