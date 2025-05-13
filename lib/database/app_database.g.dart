@@ -211,11 +211,14 @@ class _$ProductDao extends ProductDao {
   Future<void> insertProduct(Product product) async {
     await _productInsertionAdapter.insert(product, OnConflictStrategy.abort);
   }
-
-  @override
-  Future<void> deleteProduct(Product product) async {
+  @override 
+  Future<void> deleteProduct(Product product) async{
     await _productDeletionAdapter.delete(product);
   }
+  // @override
+  // Future<void> deleteAllProducts(Product product) async {
+  //   await _queryAdapter.queryNoReturn('DELETE FORM Product');
+  // }
 }
 
 class _$UserDao extends UserDao {
