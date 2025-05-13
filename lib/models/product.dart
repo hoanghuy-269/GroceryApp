@@ -9,6 +9,7 @@ class Product {
   final String imgURL; 
   final int quantity;
   final String description;
+  final int loai;
 
   Product({
     this.id,
@@ -17,5 +18,6 @@ class Product {
     required this.imgURL, 
     required this.quantity,
     required this.description,
+    required this.loai
   });
 }

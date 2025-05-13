@@ -104,7 +104,7 @@ class _$AppDatabase extends AppDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Product` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL, `price` REAL NOT NULL, `imgURL` TEXT NOT NULL, `quantity` INTEGER NOT NULL, `description` TEXT NOT NULL)');
+            'CREATE TABLE IF NOT EXISTS `Product` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL, `price` REAL NOT NULL, `imgURL` TEXT NOT NULL, `quantity` INTEGER NOT NULL, `description` TEXT NOT NULL, `loai` INTEGER NOT NULL)');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `User` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, `email` TEXT NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
@@ -113,6 +113,7 @@ class _$AppDatabase extends AppDatabase {
             'CREATE TABLE IF NOT EXISTS `OrderItem` (`id` INTEGER NOT NULL, `orderId` INTEGER NOT NULL, `productId` INTEGER NOT NULL, `quantity` INTEGER NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Wishlist` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `userId` INTEGER NOT NULL, `productId` INTEGER NOT NULL)');
+
         await callback?.onCreate?.call(database, version);
       },
     );
@@ -159,7 +160,8 @@ class _$ProductDao extends ProductDao {
                   'price': item.price,
                   'imgURL': item.imgURL,
                   'quantity': item.quantity,
-                  'description': item.description
+                  'description': item.description,
+                  'loai': item.loai
                 }),
         _productDeletionAdapter = DeletionAdapter(
             database,
@@ -171,7 +173,8 @@ class _$ProductDao extends ProductDao {
                   'price': item.price,
                   'imgURL': item.imgURL,
                   'quantity': item.quantity,
-                  'description': item.description
+                  'description': item.description,
+                  'loai': item.loai
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -193,21 +196,38 @@ class _$ProductDao extends ProductDao {
             price: row['price'] as double,
             imgURL: row['imgURL'] as String,
             quantity: row['quantity'] as int,
-            description: row['description'] as String));
+            description: row['description'] as String,
+            loai: row['loai'] as int));
+  }
+
+  @override
+  Future<void> deleteAllProducts() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM Product');
+  }
+
+  @override
+  Future<List<Product>> getProductByCategory(int categoryKey) async {
+    return _queryAdapter.queryList('SELECT * FROM Product Where loai = ?1',
+        mapper: (Map<String, Object?> row) => Product(
+            id: row['id'] as int?,
+            name: row['name'] as String,
+            price: row['price'] as double,
+            imgURL: row['imgURL'] as String,
+            quantity: row['quantity'] as int,
+            description: row['description'] as String,
+            loai: row['loai'] as int),
+        arguments: [categoryKey]);
   }
 
   @override
   Future<void> insertProduct(Product product) async {
     await _productInsertionAdapter.insert(product, OnConflictStrategy.abort);
   }
-  @override 
-  Future<void> deleteProduct(Product product) async{
+
+  @override
+  Future<void> deleteProduct(Product product) async {
     await _productDeletionAdapter.delete(product);
   }
-  // @override
-  // Future<void> deleteAllProducts(Product product) async {
-  //   await _queryAdapter.queryNoReturn('DELETE FORM Product');
-  // }
 }
 
 class _$UserDao extends UserDao {
