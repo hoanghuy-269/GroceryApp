@@ -1,29 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:grocery_app/models/product.dart';
 
 class FavoriteScreen extends StatefulWidget {
-  const FavoriteScreen({super.key});
+  final List<Product> favoriteItems; // Nhận dữ liệu là List<Product>
+  final Function(Product) onRemoveFavorite; // Callback để xóa sản phẩm khỏi danh sách yêu thích
+
+  const FavoriteScreen({
+    super.key, 
+    required this.favoriteItems, 
+    required this.onRemoveFavorite, // Truyền hàm xóa vào
+  });
 
   @override
-  // ignore: library_private_types_in_public_api
   _FavoriteScreenState createState() => _FavoriteScreenState();
 }
 
 class _FavoriteScreenState extends State<FavoriteScreen> {
-  // Danh sách các mục yêu thích
-  List<Map<String, String>> favoriteItems = [
-    {'title': 'Item 1', 'description': 'Description for item 1'},
-    {'title': 'Item 2', 'description': 'Description for item 2'},
-    {'title': 'Item 3', 'description': 'Description for item 3'},
-  ];
-
-  void _removeFavorite(int index) {
-    setState(() {
-      favoriteItems.removeAt(index); // Xóa mục yêu thích
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    print("Favorite items before popping: ${widget.favoriteItems}");  // Kiểm tra danh sách yêu thích trước khi quay lại Home
+
     return Scaffold(
       appBar: AppBar(title: const Text('Favorites')),
       body: Padding(
@@ -36,18 +32,16 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            // Danh sách các mục yêu thích
             Expanded(
-              child: ListView.builder(
-                itemCount: favoriteItems.length,
-                itemBuilder: (context, index) {
-                  return _buildFavoriteItem(
-                    favoriteItems[index]['title']!,
-                    favoriteItems[index]['description']!,
-                    index,
-                  );
-                },
-              ),
+              child: widget.favoriteItems.isEmpty
+                  ? const Center(child: Text('No favorite items yet'))
+                  : ListView.builder(
+                      itemCount: widget.favoriteItems.length,
+                      itemBuilder: (context, index) {
+                        final product = widget.favoriteItems[index];
+                        return _buildFavoriteItem(product, index);
+                      },
+                    ),
             ),
           ],
         ),
@@ -55,16 +49,30 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     );
   }
 
-  Widget _buildFavoriteItem(String title, String description, int index) {
+  Widget _buildFavoriteItem(Product product, int index) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       child: ListTile(
-        title: Text(title),
-        subtitle: Text(description),
+        leading: Image.asset(
+          product.imgURL,  // Hiển thị hình ảnh sản phẩm
+          width: 50,
+          height: 50,
+          fit: BoxFit.cover,
+        ),
+        title: Text(product.name),
+        subtitle: Text(product.description),
         trailing: IconButton(
           icon: const Icon(Icons.delete),
           onPressed: () {
-            _removeFavorite(index); // Gọi hàm xóa mục yêu thích
+            setState(() {
+              widget.onRemoveFavorite(product);  // Gọi callback để xóa sản phẩm khỏi danh sách yêu thích
+            });
+
+            // Trước khi trả lại, in ra danh sách yêu thích hiện tại
+            print("Favorite items after removal: ${widget.favoriteItems}");
+
+            // Cập nhật lại giao diện mà không quay lại Home
+            setState(() {});
           },
         ),
       ),
