@@ -26,7 +26,7 @@ class _HomeState extends State<Home> {
     _database =
         await $FloorAppDatabase.databaseBuilder('app_database.db').build();
     await _addSampleProducts();
-    // _loadProducts();
+    _loadProducts();
   }
 
   Future<void> _addSampleProducts() async {
@@ -141,6 +141,7 @@ class _HomeState extends State<Home> {
     );
   }
 }
+
 class ProductCart extends StatefulWidget {
   final Product product;
 
@@ -177,23 +178,26 @@ class _ProductCartState extends State<ProductCart> {
                   topLeft: Radius.circular(12),
                   topRight: Radius.circular(12),
                 ),
-                child: product.imgURL.startsWith('assets/')
-                    ? Image.asset(
-                        product.imgURL,
-                        fit: BoxFit.cover,
-                        height: 100,
-                        width: double.infinity,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Icon(Icons.broken_image, size: 50),
-                      )
-                    : Image.network(
-                        product.imgURL,
-                        fit: BoxFit.cover,
-                        height: 100,
-                        width: double.infinity,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Icon(Icons.broken_image, size: 50),
-                      ),
+                child:
+                    product.imgURL.startsWith('assets/')
+                        ? Image.asset(
+                          product.imgURL,
+                          fit: BoxFit.cover,
+                          height: 100,
+                          width: double.infinity,
+                          errorBuilder:
+                              (context, error, stackTrace) =>
+                                  const Icon(Icons.broken_image, size: 50),
+                        )
+                        : Image.network(
+                          product.imgURL,
+                          fit: BoxFit.cover,
+                          height: 100,
+                          width: double.infinity,
+                          errorBuilder:
+                              (context, error, stackTrace) =>
+                                  const Icon(Icons.broken_image, size: 50),
+                        ),
               ),
               Positioned(
                 top: 6,

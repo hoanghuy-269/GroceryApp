@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'home.dart';
-// import 'product_detal_screen.dart';
 import 'favourite_screen.dart';
+import 'account_screen.dart';
 
 class MyBottom extends StatefulWidget {
-  const MyBottom({super.key});
+  final String userEmail;
+
+  const MyBottom({super.key, required this.userEmail});
 
   @override
   State<StatefulWidget> createState() => _MyBottomState();
@@ -12,14 +14,18 @@ class MyBottom extends StatefulWidget {
 
 class _MyBottomState extends State<MyBottom> {
   int _selected = 0;
+  late final List<Widget> _screens;
 
-  final List<Widget> _screens = [
-    const Home(),
-    const FavoriteScreen(),
-    const Home()
-
-
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      const Home(),
+      const FavoriteScreen(),
+      const Home(),
+      AccountScreen(email: widget.userEmail),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,18 +37,13 @@ class _MyBottomState extends State<MyBottom> {
         selectedItemColor: Colors.blueAccent,
         unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: "Home",
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite),
             label: "Favorite",
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: "Search",
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
         ],
       ),
     );
