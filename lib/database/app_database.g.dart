@@ -54,12 +54,15 @@ class _$AppDatabaseBuilder implements $AppDatabaseBuilderContract {
 
   @override
   Future<AppDatabase> build() async {
-    final path =
-        name != null
-            ? await sqfliteDatabaseFactory.getDatabasePath(name!)
-            : ':memory:';
+    final path = name != null
+        ? await sqfliteDatabaseFactory.getDatabasePath(name!)
+        : ':memory:';
     final database = _$AppDatabase();
-    database.database = await database.open(path, _migrations, _callback);
+    database.database = await database.open(
+      path,
+      _migrations,
+      _callback,
+    );
     return database;
   }
 }
@@ -95,34 +98,21 @@ class _$AppDatabase extends AppDatabase {
       },
       onUpgrade: (database, startVersion, endVersion) async {
         await MigrationAdapter.runMigrations(
-          database,
-          startVersion,
-          endVersion,
-          migrations,
-        );
+            database, startVersion, endVersion, migrations);
 
         await callback?.onUpgrade?.call(database, startVersion, endVersion);
       },
       onCreate: (database, version) async {
         await database.execute(
-
             'CREATE TABLE IF NOT EXISTS `Product` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL, `price` REAL NOT NULL, `imgURL` TEXT NOT NULL, `quantity` INTEGER NOT NULL, `description` TEXT NOT NULL, `loai` INTEGER NOT NULL)');
-
-          'CREATE TABLE IF NOT EXISTS `Product` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL, `price` REAL NOT NULL, `imgURL` TEXT NOT NULL, `quantity` INTEGER NOT NULL, `description` TEXT NOT NULL)',
-        );
         await database.execute(
-          'CREATE TABLE IF NOT EXISTS `User` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `email` TEXT NOT NULL, `phone` TEXT NOT NULL, `password` TEXT NOT NULL)',
-        );
+            'CREATE TABLE IF NOT EXISTS `User` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `email` TEXT NOT NULL, `phone` TEXT NOT NULL, `password` TEXT NOT NULL)');
         await database.execute(
-          'CREATE TABLE IF NOT EXISTS `Order` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `date` INTEGER NOT NULL)',
-        );
+            'CREATE TABLE IF NOT EXISTS `Order` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `date` INTEGER NOT NULL)');
         await database.execute(
-          'CREATE TABLE IF NOT EXISTS `OrderItem` (`id` INTEGER NOT NULL, `orderId` INTEGER NOT NULL, `productId` INTEGER NOT NULL, `quantity` INTEGER NOT NULL, PRIMARY KEY (`id`))',
-        );
+            'CREATE TABLE IF NOT EXISTS `OrderItem` (`id` INTEGER NOT NULL, `orderId` INTEGER NOT NULL, `productId` INTEGER NOT NULL, `quantity` INTEGER NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
-          'CREATE TABLE IF NOT EXISTS `Wishlist` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `userId` INTEGER NOT NULL, `productId` INTEGER NOT NULL)');
-          'CREATE TABLE IF NOT EXISTS `Wishlist` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `userId` INTEGER NOT NULL, `productId` INTEGER NOT NULL)',
-        );
+            'CREATE TABLE IF NOT EXISTS `Wishlist` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `userId` INTEGER NOT NULL, `productId` INTEGER NOT NULL)');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -186,33 +176,6 @@ class _$ProductDao extends ProductDao {
                   'description': item.description,
                   'loai': item.loai
                 });
-  _$ProductDao(this.database, this.changeListener)
-    : _queryAdapter = QueryAdapter(database),
-      _productInsertionAdapter = InsertionAdapter(
-        database,
-        'Product',
-        (Product item) => <String, Object?>{
-          'id': item.id,
-          'name': item.name,
-          'price': item.price,
-          'imgURL': item.imgURL,
-          'quantity': item.quantity,
-          'description': item.description,
-        },
-      ),
-      _productDeletionAdapter = DeletionAdapter(
-        database,
-        'Product',
-        ['id'],
-        (Product item) => <String, Object?>{
-          'id': item.id,
-          'name': item.name,
-          'price': item.price,
-          'imgURL': item.imgURL,
-          'quantity': item.quantity,
-          'description': item.description,
-        },
-      );
 
   final sqflite.DatabaseExecutor database;
 
@@ -226,10 +189,8 @@ class _$ProductDao extends ProductDao {
 
   @override
   Future<List<Product>> getAllProducts() async {
-    return _queryAdapter.queryList(
-      'SELECT * FROM Product',
-      mapper:
-          (Map<String, Object?> row) => Product(
+    return _queryAdapter.queryList('SELECT * FROM Product',
+        mapper: (Map<String, Object?> row) => Product(
             id: row['id'] as int?,
             name: row['name'] as String,
             price: row['price'] as double,
@@ -256,9 +217,6 @@ class _$ProductDao extends ProductDao {
             description: row['description'] as String,
             loai: row['loai'] as int),
         arguments: [categoryKey]);
-
-          ),
-    );
   }
 
   @override
@@ -273,43 +231,42 @@ class _$ProductDao extends ProductDao {
 }
 
 class _$UserDao extends UserDao {
-  _$UserDao(this.database, this.changeListener)
-    : _queryAdapter = QueryAdapter(database),
-      _userInsertionAdapter = InsertionAdapter(
-        database,
-        'User',
-        (User item) => <String, Object?>{
-          'id': item.id,
-          'name': item.name,
-          'email': item.email,
-          'phone': item.phone,
-          'password': item.password,
-        },
-      ),
-      _userUpdateAdapter = UpdateAdapter(
-        database,
-        'User',
-        ['id'],
-        (User item) => <String, Object?>{
-          'id': item.id,
-          'name': item.name,
-          'email': item.email,
-          'phone': item.phone,
-          'password': item.password,
-        },
-      ),
-      _userDeletionAdapter = DeletionAdapter(
-        database,
-        'User',
-        ['id'],
-        (User item) => <String, Object?>{
-          'id': item.id,
-          'name': item.name,
-          'email': item.email,
-          'phone': item.phone,
-          'password': item.password,
-        },
-      );
+  _$UserDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _userInsertionAdapter = InsertionAdapter(
+            database,
+            'User',
+            (User item) => <String, Object?>{
+                  'id': item.id,
+                  'name': item.name,
+                  'email': item.email,
+                  'phone': item.phone,
+                  'password': item.password
+                }),
+        _userUpdateAdapter = UpdateAdapter(
+            database,
+            'User',
+            ['id'],
+            (User item) => <String, Object?>{
+                  'id': item.id,
+                  'name': item.name,
+                  'email': item.email,
+                  'phone': item.phone,
+                  'password': item.password
+                }),
+        _userDeletionAdapter = DeletionAdapter(
+            database,
+            'User',
+            ['id'],
+            (User item) => <String, Object?>{
+                  'id': item.id,
+                  'name': item.name,
+                  'email': item.email,
+                  'phone': item.phone,
+                  'password': item.password
+                });
 
   final sqflite.DatabaseExecutor database;
 
@@ -319,55 +276,43 @@ class _$UserDao extends UserDao {
 
   final InsertionAdapter<User> _userInsertionAdapter;
 
-  final UpdateAdapter<User> _userUpdateAdapter; // Thêm adapter cho cập nhật
+  final UpdateAdapter<User> _userUpdateAdapter;
 
   final DeletionAdapter<User> _userDeletionAdapter;
 
   @override
   Future<List<User>> getAllUsers() async {
-    return _queryAdapter.queryList(
-      'SELECT * FROM User',
-      mapper:
-          (Map<String, Object?> row) => User(
+    return _queryAdapter.queryList('SELECT * FROM User',
+        mapper: (Map<String, Object?> row) => User(
             row['id'] as int,
             row['name'] as String,
             row['email'] as String,
             row['phone'] as String,
-            row['password'] as String,
-          ),
-    );
+            row['password'] as String));
   }
 
   @override
   Future<User?> getUserById(int id) async {
-    return _queryAdapter.query(
-      'SELECT * FROM User WHERE id = ?1',
-      mapper:
-          (Map<String, Object?> row) => User(
+    return _queryAdapter.query('SELECT * FROM User WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => User(
             row['id'] as int,
             row['name'] as String,
             row['email'] as String,
             row['phone'] as String,
-            row['password'] as String,
-          ),
-      arguments: [id],
-    );
+            row['password'] as String),
+        arguments: [id]);
   }
 
   @override
   Future<User?> getUserByEmail(String email) async {
-    return _queryAdapter.query(
-      'SELECT * FROM User WHERE email = ?1',
-      mapper:
-          (Map<String, Object?> row) => User(
+    return _queryAdapter.query('SELECT * FROM User WHERE email = ?1',
+        mapper: (Map<String, Object?> row) => User(
             row['id'] as int,
             row['name'] as String,
             row['email'] as String,
             row['phone'] as String,
-            row['password'] as String,
-          ),
-      arguments: [email],
-    );
+            row['password'] as String),
+        arguments: [email]);
   }
 
   @override
@@ -387,16 +332,21 @@ class _$UserDao extends UserDao {
 }
 
 class _$OrderDao extends OrderDao {
-  _$OrderDao(this.database, this.changeListener)
-    : _queryAdapter = QueryAdapter(database),
-      _orderInsertionAdapter = InsertionAdapter(
-        database,
-        'Order',
-        (Order item) => <String, Object?>{'id': item.id, 'date': item.date},
-      ),
-      _orderDeletionAdapter = DeletionAdapter(database, 'Order', [
-        'id',
-      ], (Order item) => <String, Object?>{'id': item.id, 'date': item.date});
+  _$OrderDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _orderInsertionAdapter = InsertionAdapter(
+            database,
+            'Order',
+            (Order item) =>
+                <String, Object?>{'id': item.id, 'date': item.date}),
+        _orderDeletionAdapter = DeletionAdapter(
+            database,
+            'Order',
+            ['id'],
+            (Order item) =>
+                <String, Object?>{'id': item.id, 'date': item.date});
 
   final sqflite.DatabaseExecutor database;
 
@@ -410,12 +360,9 @@ class _$OrderDao extends OrderDao {
 
   @override
   Future<List<Order>> getAllOrders() async {
-    return _queryAdapter.queryList(
-      'SELECT * FROM Order',
-      mapper:
-          (Map<String, Object?> row) =>
-              Order(id: row['id'] as int?, date: row['date'] as int),
-    );
+    return _queryAdapter.queryList('SELECT * FROM Order',
+        mapper: (Map<String, Object?> row) =>
+            Order(id: row['id'] as int?, date: row['date'] as int));
   }
 
   @override
@@ -430,29 +377,29 @@ class _$OrderDao extends OrderDao {
 }
 
 class _$OrderItemDao extends OrderItemDao {
-  _$OrderItemDao(this.database, this.changeListener)
-    : _queryAdapter = QueryAdapter(database),
-      _orderItemInsertionAdapter = InsertionAdapter(
-        database,
-        'OrderItem',
-        (OrderItem item) => <String, Object?>{
-          'id': item.id,
-          'orderId': item.orderId,
-          'productId': item.productId,
-          'quantity': item.quantity,
-        },
-      ),
-      _orderItemDeletionAdapter = DeletionAdapter(
-        database,
-        'OrderItem',
-        ['id'],
-        (OrderItem item) => <String, Object?>{
-          'id': item.id,
-          'orderId': item.orderId,
-          'productId': item.productId,
-          'quantity': item.quantity,
-        },
-      );
+  _$OrderItemDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _orderItemInsertionAdapter = InsertionAdapter(
+            database,
+            'OrderItem',
+            (OrderItem item) => <String, Object?>{
+                  'id': item.id,
+                  'orderId': item.orderId,
+                  'productId': item.productId,
+                  'quantity': item.quantity
+                }),
+        _orderItemDeletionAdapter = DeletionAdapter(
+            database,
+            'OrderItem',
+            ['id'],
+            (OrderItem item) => <String, Object?>{
+                  'id': item.id,
+                  'orderId': item.orderId,
+                  'productId': item.productId,
+                  'quantity': item.quantity
+                });
 
   final sqflite.DatabaseExecutor database;
 
@@ -466,54 +413,49 @@ class _$OrderItemDao extends OrderItemDao {
 
   @override
   Future<List<OrderItem>> getAllOrderItems() async {
-    return _queryAdapter.queryList(
-      'SELECT * FROM OrderItem',
-      mapper:
-          (Map<String, Object?> row) => OrderItem(
+    return _queryAdapter.queryList('SELECT * FROM OrderItem',
+        mapper: (Map<String, Object?> row) => OrderItem(
             row['id'] as int,
             row['orderId'] as int,
             row['productId'] as int,
-            row['quantity'] as int,
-          ),
-    );
+            row['quantity'] as int));
   }
 
   @override
   Future<void> insertOrderItem(OrderItem orderItem) async {
     await _orderItemInsertionAdapter.insert(
-      orderItem,
-      OnConflictStrategy.abort,
-    );
+        orderItem, OnConflictStrategy.abort);
   }
 
   @override
   Future<void> deleteOrderItem(OrderItem orderItem) async {
     await _orderItemDeletionAdapter.delete(orderItem);
   }
+  
 }
 
 class _$WishlistDao extends WishlistDao {
-  _$WishlistDao(this.database, this.changeListener)
-    : _queryAdapter = QueryAdapter(database),
-      _wishlistInsertionAdapter = InsertionAdapter(
-        database,
-        'Wishlist',
-        (Wishlist item) => <String, Object?>{
-          'id': item.id,
-          'userId': item.userId,
-          'productId': item.productId,
-        },
-      ),
-      _wishlistDeletionAdapter = DeletionAdapter(
-        database,
-        'Wishlist',
-        ['id'],
-        (Wishlist item) => <String, Object?>{
-          'id': item.id,
-          'userId': item.userId,
-          'productId': item.productId,
-        },
-      );
+  _$WishlistDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _wishlistInsertionAdapter = InsertionAdapter(
+            database,
+            'Wishlist',
+            (Wishlist item) => <String, Object?>{
+                  'id': item.id,
+                  'userId': item.userId,
+                  'productId': item.productId
+                }),
+        _wishlistDeletionAdapter = DeletionAdapter(
+            database,
+            'Wishlist',
+            ['id'],
+            (Wishlist item) => <String, Object?>{
+                  'id': item.id,
+                  'userId': item.userId,
+                  'productId': item.productId
+                });
 
   final sqflite.DatabaseExecutor database;
 
@@ -527,15 +469,11 @@ class _$WishlistDao extends WishlistDao {
 
   @override
   Future<List<Wishlist>> getAllWishlists() async {
-    return _queryAdapter.queryList(
-      'SELECT * FROM Wishlist',
-      mapper:
-          (Map<String, Object?> row) => Wishlist(
+    return _queryAdapter.queryList('SELECT * FROM Wishlist',
+        mapper: (Map<String, Object?> row) => Wishlist(
             id: row['id'] as int?,
             userId: row['userId'] as int,
-            productId: row['productId'] as int,
-          ),
-    );
+            productId: row['productId'] as int));
   }
 
   @override
