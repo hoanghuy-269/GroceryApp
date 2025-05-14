@@ -3,21 +3,24 @@ import 'package:floor/floor.dart';
 @Entity(tableName: 'User')
 class User {
   @PrimaryKey(autoGenerate: true)
-  final int id;
+  final int? id; // Đặt là nullable
+
   String name;
   String email;
   String phone;
   String password;
+  String role;
 
-  User(this.id, this.name, this.email, this.phone, this.password);
+  User(this.id, this.name, this.email, this.phone, this.password, this.role);
 
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
-      map['id'] as int,
+      map['id'] as int?,
       map['name'] as String,
       map['email'] as String,
       map['phone'] as String,
       map['password'] as String,
+      map['role'] as String,
     );
   }
 
@@ -28,6 +31,7 @@ class User {
       'email': email,
       'phone': phone,
       'password': password,
+      'role': role, // Thêm vai trò vào đây
     };
   }
 }

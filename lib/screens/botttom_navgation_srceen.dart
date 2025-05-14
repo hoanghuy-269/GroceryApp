@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:grocery_app/models/product.dart';
-import 'home.dart';
-import 'favourite_screen.dart';
-
-import 'CartScreen.dart';
-
-import 'account_screen.dart';
-
+import 'package:grocery_app/screens/home.dart'; // Màn hình chính
+import 'package:grocery_app/screens/cart_screen.dart'; // Màn hình giỏ hàng
+import 'package:grocery_app/screens/account_screen.dart'; // Màn hình tài khoản
+import 'package:grocery_app/models/product.dart'; // Mô hình sản phẩm
 
 class MyBottom extends StatefulWidget {
   final String userEmail;
@@ -18,91 +14,89 @@ class MyBottom extends StatefulWidget {
 }
 
 class _MyBottomState extends State<MyBottom> {
-  int _selected = 0;
+  int _selected = 0; // Màn hình hiện tại
+  List<Product> cartProducts = []; // Giỏ hàng
+
   late final List<Widget> _screens;
-
-
-  // Khởi tạo danh sách yêu thích với danh sách trống
-  List<Product> favoriteItems = []; // Danh sách yêu thích
-
-  final List<Widget> _screens = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _screens.addAll([
-      const Home(),
-      FavoriteScreen(
-        favoriteItems: favoriteItems, // Truyền danh sách yêu thích
-        onRemoveFavorite: (Product product) {
-          setState(() {
-            favoriteItems.remove(product); // Cập nhật danh sách yêu thích khi xóa sản phẩm
-          });
-        },
-      ),
-      CartScreen(cartItems: [], cartProducts: [],), // Truyền giỏ hàng vào CartScreen
-    ]);
 
   @override
   void initState() {
     super.initState();
     _screens = [
-      const Home(),
-      const FavoriteScreen(),
-      const Home(),
-      AccountScreen(email: widget.userEmail),
+      Home(onAddToCart: _addToCart), // Truyền hàm thêm vào giỏ hàng
+      CartScreen(
+        cartItems: cartProducts,
+      ), // Truyền giỏ hàng vào màn hình giỏ hàng
+      AccountScreen(email: widget.userEmail), // Màn hình tài khoản
     ];
+  }
 
+  // Hàm thêm sản phẩm vào giỏ hàng
+  void _addToCart(Product product) {
+    setState(() {
+      cartProducts.add(product); // Thêm sản phẩm vào giỏ hàng
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${product.name} đã được thêm vào giỏ hàng')),
+    );
+  }
+
+  // Hàm xử lý sự kiện khi người dùng chuyển tab
+  void _onPress(int index) {
+    setState(() {
+      _selected = index; // Cập nhật màn hình hiện tại
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_getAppBarTitle())), // Đặt tiêu đề cho AppBar dựa trên màn hình hiện tại
-      body: _screens[_selected], // Hiển thị màn hình đã chọn
+      body: _screens[_selected], // Hiển thị màn hình tương ứng với tab đã chọn
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selected,
-        onTap: _onPress,
+        currentIndex: _selected, // Hiển thị tab hiện tại
+        onTap: _onPress, // Sự kiện khi người dùng chọn tab
         selectedItemColor: Colors.blueAccent,
         unselectedItemColor: Colors.grey,
-        items: const [
+        items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
-            label: "Favorite",
-          ),
-
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
+            icon: Stack(
+              children: [
+                Icon(Icons.shopping_cart),
+                if (cartProducts.isNotEmpty)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: CircleAvatar(
+                      radius: 8,
+                      backgroundColor: Colors.red,
+                      child: Text(
+                        cartProducts.length.toString(),
+                        style: TextStyle(fontSize: 12, color: Colors.white),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
             label: "Cart",
           ),
-
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-
         ],
       ),
     );
   }
 
-  // Hàm để thay đổi tiêu đề AppBar tùy vào màn hình hiện tại
+  // Tiêu đề của AppBar thay đổi khi người dùng chuyển tab
   String _getAppBarTitle() {
     switch (_selected) {
       case 0:
-        return 'Home';
+        return "Home";
       case 1:
-        return 'Favorite';
+        return "Cart"; // Cập nhật tiêu đề cho tab giỏ hàng
       case 2:
-        return 'Cart';
+        return "Profile";
       default:
-        return '';
+        return "";
     }
-  }
-
-  // Hàm xử lý sự kiện khi chọn item trong BottomNavigationBar
-  void _onPress(int index) {
-    setState(() {
-      _selected = index;  // Cập nhật màn hình được chọn
-    });
   }
 }
