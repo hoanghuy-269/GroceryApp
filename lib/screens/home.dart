@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_app/models/product.dart';
 import 'package:grocery_app/database/app_database.dart';
-import 'ProductCart.dart';
+import 'package:grocery_app/screens/cartscreen.dart';
+import 'package:grocery_app/screens/favourite_screen.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -12,6 +13,8 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   List<Product> products = [];
+  List<Product> favoriteProducts = [];
+  List<Product> cartProducts = []; // Danh sách sản phẩm trong giỏ hàng
   String searchQuery = '';
   bool isLoading = true;
   late AppDatabase _database;
@@ -27,7 +30,7 @@ class _HomeState extends State<Home> {
     {"label": "Mì - Cháo Ăn liền", "key": 3},
     {"label": "Gia vị", "key": 4},
     {"label": "Đồ dùng học tập", "key": 5},
-    {"label": " Đồ dùng trong gia đình", "key": 6},
+    {"label": "Đồ dùng trong gia đình", "key": 6},
   ];
 
   @override
@@ -39,9 +42,9 @@ class _HomeState extends State<Home> {
   Future<void> _initDatabase() async {
     _database =
         await $FloorAppDatabase.databaseBuilder('app_database.db').build();
-       await _database.productDao.deleteAllProducts();
-       await _addSampleProducts();
-       await _loadProducts(); // Tải sản phẩm sau khi thêm mẫu
+    await _database.productDao.deleteAllProducts(); // Xóa dữ liệu cũ
+    await _addSampleProducts();
+    // await _loadProducts();
   }
 
   Future<void> _addSampleProducts() async {
@@ -106,11 +109,11 @@ class _HomeState extends State<Home> {
         loai: 1,
       ),
       Product(
-        name: 'CoCaCoLa',
+        name: 'CocaCola',
         price: 8,
         imgURL: 'assets/images/douong_cocacola.png',
         description:
-            ' Nước giải khát mát lạnh, sảng khoái tức thì, thích hợp cho mọi độ tuổi.',
+            'Nước giải khát mát lạnh, sảng khoái tức thì, thích hợp cho mọi độ tuổi.',
         quantity: 150,
         loai: 2,
       ),
@@ -124,7 +127,7 @@ class _HomeState extends State<Home> {
         loai: 3,
       ),
       Product(
-        name: 'hộp bút mực',
+        name: 'Hộp bút mực',
         price: 35,
         imgURL: 'assets/images/hoctap_but.png',
         description: 'Bộ bút mực tiện dụng cho học sinh và sinh viên.',
@@ -141,7 +144,7 @@ class _HomeState extends State<Home> {
         loai: 3,
       ),
       Product(
-        name: 'Red Bull ',
+        name: 'Red Bull',
         price: 8,
         imgURL: 'assets/images/douong_redbull.png',
         description:
@@ -168,26 +171,58 @@ class _HomeState extends State<Home> {
     setState(() {
       isLoading = true;
     });
-
-    List<Product> loadedProducts = [];
-    final categoryKey = selectCategory["key"] as int; // Ép kiểu thành int
-
-    if (categoryKey == 0) {
-      loadedProducts = await _database.productDao.getAllProducts();
-    } else {
-      loadedProducts = await _database.productDao.getProductByCategory(
-        categoryKey,
-      ); // Sửa tên hàm
+    try {
+      List<Product> loadedProducts = [];
+      final categoryKey = selectCategory["key"] as int;
+      if (categoryKey == 0) {
+        loadedProducts = await _database.productDao.getAllProducts();
+      } else {
+        loadedProducts = await _database.productDao.getProductByCategory(
+          categoryKey,
+        );
+      }
+      setState(() {
+        products = loadedProducts;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi khi tải sản phẩm: $e')));
     }
+  }
 
+  // Hàm thêm vào giỏ hàng
+  void _addToCart(Product product) {
     setState(() {
-      products = loadedProducts;
-      isLoading = false;
+      cartProducts.add(product);
+    });
+  }
+
+  // Hàm thêm/xóa sản phẩm khỏi danh sách yêu thích
+  void _toggleFavorite(Product product) {
+    setState(() {
+      if (favoriteProducts.contains(product)) {
+        favoriteProducts.remove(product);
+      } else {
+        favoriteProducts.add(product);
+      }
+    });
+  }
+
+  // Hàm xóa sản phẩm khỏi danh sách yêu thích
+  void _removeFromFavorites(Product product) {
+    setState(() {
+      favoriteProducts.remove(product);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Lọc sản phẩm dựa trên từ khóa tìm kiếm
     final filteredProducts =
         products
             .where(
@@ -199,7 +234,26 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
         title: const Text("Grocery App"),
         actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.shopping_cart)),
+          IconButton(
+            onPressed: () async {
+              final updatedFavorites = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder:
+                      (context) => FavoriteScreen(
+                        // favoriteItems: favoriteProducts,
+                        // onRemoveFavorite: _removeFromFavorites,
+                      ),
+                ),
+              );
+              if (updatedFavorites != null) {
+                setState(() {
+                  favoriteProducts = updatedFavorites;
+                });
+              }
+            },
+            icon: const Icon(Icons.favorite),
+          ),
         ],
       ),
       body: Padding(
@@ -208,11 +262,12 @@ class _HomeState extends State<Home> {
         ),
         child: Column(
           children: [
+            // Ô tìm kiếm
             Padding(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(8.0),
               child: TextField(
                 decoration: InputDecoration(
-                  hintText: 'Tìm kiếm sản phẩm ...',
+                  hintText: 'Tìm kiếm sản phẩm...',
                   prefixIcon: const Icon(Icons.search),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -225,35 +280,141 @@ class _HomeState extends State<Home> {
                 },
               ),
             ),
+            // Danh sách danh mục
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children:
                     categories.map((category) {
-                      return _buildCategoryButton(
-                        category,
-                        category['key'] == selectCategory['key'],
+                      final isSelected =
+                          category['key'] == selectCategory['key'];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor:
+                                isSelected
+                                    ? Colors.green[400]
+                                    : Colors.grey[200],
+                            foregroundColor: Colors.black87,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              selectCategory = category;
+                            });
+                            _loadProducts();
+                          },
+                          child: Text(category['label']),
+                        ),
                       );
                     }).toList(),
               ),
             ),
+            // Lưới sản phẩm
             Expanded(
               child:
                   isLoading
                       ? const Center(child: CircularProgressIndicator())
+                      : filteredProducts.isEmpty
+                      ? const Center(child: Text('Không tìm thấy sản phẩm'))
                       : GridView.builder(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(8.0),
                         itemCount: filteredProducts.length,
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
-                              childAspectRatio: 3 / 4,
+                              childAspectRatio: 2 / 3.3,
                               crossAxisSpacing: 10,
                               mainAxisSpacing: 10,
                             ),
                         itemBuilder: (context, index) {
                           final product = filteredProducts[index];
-                          return ProductCart(product: product);
+                          return Card(
+                            elevation: 3,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                // Hình ảnh sản phẩm
+                                Stack(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(12),
+                                        topRight: Radius.circular(12),
+                                      ),
+                                      child: Image.asset(
+                                        product.imgURL,
+                                        height: 100,
+                                        width: double.infinity,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                const Icon(
+                                                  Icons.broken_image,
+                                                  size: 50,
+                                                ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      top: 6,
+                                      right: 6,
+                                      child: IconButton(
+                                        onPressed:
+                                            () => _toggleFavorite(product),
+                                        icon: Icon(
+                                          favoriteProducts.contains(product)
+                                              ? Icons.favorite
+                                              : Icons.favorite_border,
+                                          color:
+                                              favoriteProducts.contains(product)
+                                                  ? Colors.red
+                                                  : Colors.grey,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                // Thông tin sản phẩm
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    product.name,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0,
+                                  ),
+                                  child: Text(
+                                    '${product.price} VNĐ',
+                                    style: const TextStyle(color: Colors.green),
+                                  ),
+                                ),
+                                // Nút thêm vào giỏ hàng
+                                ButtonBar(
+                                  alignment: MainAxisAlignment.center,
+                                  children: [
+                                    IconButton(
+                                      onPressed: () => _addToCart(product),
+                                      icon: const Icon(Icons.add_shopping_cart),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
                         },
                       ),
             ),
@@ -262,146 +423,4 @@ class _HomeState extends State<Home> {
       ),
     );
   }
-
-  Widget _buildCategoryButton(Map<String, dynamic> category, bool isSelected) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
-      child: OutlinedButton(
-        style: OutlinedButton.styleFrom(
-          backgroundColor: isSelected ? Colors.green[400] : Colors.grey[200],
-          foregroundColor: Colors.black87,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        ),
-        onPressed: () {
-          setState(() {
-            selectCategory = category;
-          });
-          _loadProducts();
-        },
-        child: Text(category['label']!),
-      ),
-    );
-  }
 }
-
-class ProductCart extends StatefulWidget {
-  final Product product;
-
-  const ProductCart({super.key, required this.product});
-
-  @override
-  State<ProductCart> createState() => _ProductCartState();
-}
-
-class _ProductCartState extends State<ProductCart> {
-  bool isFavorite = false;
-
-  void toggleFavorite() {
-    setState(() {
-      isFavorite = !isFavorite;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final product = widget.product;
-
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Stack để chồng hình và icon
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  topRight: Radius.circular(12),
-                ),
-                child:
-                    product.imgURL.startsWith('assets/')
-                        ? Image.asset(
-                          product.imgURL,
-                          fit: BoxFit.cover,
-                          height: 100,
-                          width: double.infinity,
-                          errorBuilder:
-                              (context, error, stackTrace) =>
-                                  const Icon(Icons.broken_image, size: 50),
-                        )
-                        : Image.network(
-                          product.imgURL,
-                          fit: BoxFit.cover,
-                          height: 100,
-                          width: double.infinity,
-                          errorBuilder:
-                              (context, error, stackTrace) =>
-                                  const Icon(Icons.broken_image, size: 50),
-                        ),
-              ),
-              Positioned(
-                top: 6,
-                right: 6,
-                child: InkWell(
-                  onTap: toggleFavorite,
-                  child: Icon(
-                    isFavorite ? Icons.favorite : Icons.favorite_border,
-                    color: isFavorite ? Colors.red : Colors.grey,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: Text(
-              product.name,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Text(
-              '${product.price.toStringAsFixed(3)} đ',
-              style: const TextStyle(
-                color: Colors.deepOrange,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Row(
-              children: [
-                Flexible(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Logic thêm vào giỏ hàng
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.shopping_cart),
-                        SizedBox(width: 8),
-                        Text('Thêm vào giỏ'),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
