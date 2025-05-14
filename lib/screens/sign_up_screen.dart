@@ -31,12 +31,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
 
-    // Lưu người dùng vào cơ sở dữ liệu mà không cần chỉ định id
+    // Lưu người dùng vào cơ sở dữ liệu
     AppDatabase db =
         await $FloorAppDatabase.databaseBuilder('app_database.db').build();
 
-    // Không cần chỉ định id vì SQLite sẽ tự động tạo giá trị cho id
-    User newUser = User(0, name, email, phone, password);
+    String role = 'user';
+
+    User newUser = User(null, name, email, phone, password, role);
 
     // Chèn người dùng mới vào cơ sở dữ liệu
     await db.userDao.insertUser(newUser);
@@ -77,9 +78,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
               controller: _emailController,
               decoration: InputDecoration(
                 labelText: 'Email',
-                border: OutlineInputBorder(), // Viền cho TextField
+                border: OutlineInputBorder(),
                 filled: true,
-                fillColor: Colors.white, // Màu nền cho TextField
+                fillColor: Colors.white,
               ),
             ),
             const SizedBox(height: 10),
@@ -89,9 +90,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
               controller: _passwordController,
               decoration: InputDecoration(
                 labelText: 'Password',
-                border: OutlineInputBorder(), // Viền cho TextField
+                border: OutlineInputBorder(),
                 filled: true,
-                fillColor: Colors.white, // Màu nền cho TextField
+                fillColor: Colors.white,
               ),
               obscureText: true,
             ),
@@ -102,9 +103,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
               controller: _phoneController,
               decoration: InputDecoration(
                 labelText: 'Phone',
-                border: OutlineInputBorder(), // Viền cho TextField
+                border: OutlineInputBorder(),
                 filled: true,
-                fillColor: Colors.white, // Màu nền cho TextField
+                fillColor: Colors.white,
               ),
             ),
             const SizedBox(height: 20),

@@ -13,17 +13,17 @@ abstract class UserDao {
 
   // Lấy người dùng theo email
   @Query('SELECT * FROM User WHERE email = :email')
-  Future<User?> getUserByEmail(String email); // Thêm phương thức này để tìm theo email
+  Future<User?> getUserByEmail(String email);
 
-  // Thêm người dùng
+  @Query('SELECT COUNT(*) FROM User WHERE email = :email')
+  Future<int?> countUsersByEmail(String email);
+
   @insert
   Future<void> insertUser(User user);
 
-  // Cập nhật người dùng
   @update
-  Future<void> updateUser(User user); // Thêm phương thức cập nhật
+  Future<void> updateUser(User user);
 
-  // Xóa người dùng
   @delete
   Future<void> deleteUser(User user);
 }
