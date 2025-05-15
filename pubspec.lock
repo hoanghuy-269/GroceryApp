@@ -202,10 +202,10 @@ packages:
     dependency: transitive
     description:
       name: dev_build
-      sha256: "87abaa4f6cfd50320b229e29a7ef5532d86bc804f3124328c7e9db238ba45b33"
+      sha256: de3c7b99d47f90c053dc331b8a950041426ecbe58dea21f961bb1f751ea98bb8
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.2+8"
+    version: "1.1.2+9"
   fake_async:
     dependency: transitive
     description:
@@ -336,6 +336,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.2"
+  intl:
+    dependency: "direct main"
+    description:
+      name: intl
+      sha256: "3bc132a9dbce73a7e4a21a17d06e1878839ffbf975568bc875c60537824b0c4d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.18.1"
   io:
     dependency: transitive
     description:

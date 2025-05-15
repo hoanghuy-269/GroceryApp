@@ -44,38 +44,38 @@ class _HomeState extends State<Home> {
   Future<void> _initDatabase() async {
     _database =
         await $FloorAppDatabase.databaseBuilder('app_database.db').build();
-    await _addSampleProducts(); // Thêm sản phẩm mẫu
+    // await _addSampleProducts(); // Thêm sản phẩm mẫu
     await _loadProducts(); // Tải danh sách sản phẩm
   }
 
   // Thêm sản phẩm mẫu vào cơ sở dữ liệu
-  Future<void> _addSampleProducts() async {
-    final sampleProducts = [
-      Product(
-        name: 'Cháo Gấu Đỏ',
-        price: 15,
-        imgURL: 'assets/images/chao_gaudo.png',
-        description: 'Cháo ăn liền tiện lợi, thơm ngon.',
-        quantity: 120,
-        loai: 3,
-      ),
-      Product(
-        name: 'Bánh Petit',
-        price: 25,
-        imgURL: 'assets/images/doan_petit.png',
-        description: 'Bánh quy mềm thơm bơ, thích hợp dùng kèm trà hoặc sữa.',
-        quantity: 80,
-        loai: 1,
-      ),
-      // Thêm các sản phẩm mẫu khác nếu cần
-    ];
+  // Future<void> _addSampleProducts() async {
+  //   final sampleProducts = [
+  //     Product(
+  //       name: 'Cháo Gấu Đỏ',
+  //       price: 15,
+  //       imgURL: 'assets/images/chao_gaudo.png',
+  //       description: 'Cháo ăn liền tiện lợi, thơm ngon.',
+  //       quantity: 120,
+  //       loai: 3,
+  //     ),
+  //     Product(
+  //       name: 'Bánh Petit',
+  //       price: 25,
+  //       imgURL: 'assets/images/doan_petit.png',
+  //       description: 'Bánh quy mềm thơm bơ, thích hợp dùng kèm trà hoặc sữa.',
+  //       quantity: 80,
+  //       loai: 1,
+  //     ),
+  //     // Thêm các sản phẩm mẫu khác nếu cần
+  //   ];
 
-    for (final product in sampleProducts) {
-      await _database.productDao.insertProduct(
-        product,
-      ); // Thêm từng sản phẩm vào cơ sở dữ liệu
-    }
-  }
+  //   for (final product in sampleProducts) {
+  //     await _database.productDao.insertProduct(
+  //       product,
+  //     ); // Thêm từng sản phẩm vào cơ sở dữ liệu
+  //   }
+  // }
 
   // Tải sản phẩm từ cơ sở dữ liệu
   Future<void> _loadProducts() async {

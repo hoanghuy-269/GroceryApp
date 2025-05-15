@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:floor/floor.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
-
+import 'date_time_converter.dart';
 import 'package:grocery_app/models/product.dart';
 import 'package:grocery_app/models/user.dart';
 import 'package:grocery_app/models/order.dart';
@@ -16,6 +16,7 @@ import 'package:grocery_app/dao/wishlist_dao.dart';
 
 part 'app_database.g.dart';
 
+@TypeConverters([DateTimeConverter])
 @Database(version: 1, entities: [Product, User, Order, OrderItem, Wishlist])
 abstract class AppDatabase extends FloorDatabase {
   ProductDao get productDao;

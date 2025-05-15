@@ -11,11 +11,15 @@ abstract class ProductDao {
 
   @delete
   Future<void> deleteProduct(Product product);
-
+  @update
+  Future<void> updateProduct(Product product);
   //
   @Query('DELETE FROM Product')
-  Future<void> deleteAllProducts(); 
+  Future<void> deleteAllProducts();
 
   @Query("SELECT * FROM Product Where loai = :categoryKey")
   Future<List<Product>> getProductByCategory(int categoryKey);
+
+  @Query('SELECT * FROM Product ORDER BY lastUpdated DESC')
+  Future<List<Product>> getAllProductsSortedByDate();
 }

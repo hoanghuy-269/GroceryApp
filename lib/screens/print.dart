@@ -26,7 +26,7 @@ class _UserListScreenState extends State<UserListScreen> {
     // In danh sách người dùng ra console
     users.forEach((user) {
       print(
-        'User: ${user.name}, Email: ${user.email}, Phone: ${user.phone}, ${user.password}',
+        'User: ${user.name}, Email: ${user.email}, Phone: ${user.phone}, ${user.password}, ${user.role}',
       );
     });
   }

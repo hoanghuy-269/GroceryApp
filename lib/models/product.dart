@@ -1,24 +1,30 @@
+// lib/models/product.dart
 import 'package:floor/floor.dart';
+import '../database/date_time_converter.dart';
 
-@Entity(tableName: 'Product') 
+@Entity(tableName: 'Product')
 class Product {
   @PrimaryKey(autoGenerate: true)
   final int? id;
   final String name;
   final double price;
-  final String imgURL; 
-  late final int quantity;
+  final int quantity;
   final String description;
+  final String imgURL;
   final int loai;
+
+  @TypeConverters([DateTimeConverter])
+  final DateTime lastUpdated;
 
   Product({
     this.id,
     required this.name,
     required this.price,
-    required this.imgURL, 
     required this.quantity,
     required this.description,
-    required this.loai
+    required this.imgURL,
+    required this.loai,
+    required this.lastUpdated,
   });
 
   @override
@@ -26,4 +32,3 @@ class Product {
     return 'Product{id: $id, name: $name, price: $price, imgURL: $imgURL, quantity: $quantity, description: $description}';
   }
 }
-

@@ -6,8 +6,6 @@ import 'package:grocery_app/screens/print.dart';
 import 'package:grocery_app/screens/account_screen.dart';
 import 'package:grocery_app/screens/login_screen.dart';
 
-
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 

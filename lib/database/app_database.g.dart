@@ -104,7 +104,7 @@ class _$AppDatabase extends AppDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Product` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL, `price` REAL NOT NULL, `imgURL` TEXT NOT NULL, `quantity` INTEGER NOT NULL, `description` TEXT NOT NULL, `loai` INTEGER NOT NULL)');
+            'CREATE TABLE IF NOT EXISTS `Product` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL, `price` REAL NOT NULL, `quantity` INTEGER NOT NULL, `description` TEXT NOT NULL, `imgURL` TEXT NOT NULL, `loai` INTEGER NOT NULL, `lastUpdated` INTEGER NOT NULL)');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `User` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL, `email` TEXT NOT NULL, `phone` TEXT NOT NULL, `password` TEXT NOT NULL, `role` TEXT NOT NULL)');
         await database.execute(
@@ -158,10 +158,25 @@ class _$ProductDao extends ProductDao {
                   'id': item.id,
                   'name': item.name,
                   'price': item.price,
-                  'imgURL': item.imgURL,
                   'quantity': item.quantity,
                   'description': item.description,
-                  'loai': item.loai
+                  'imgURL': item.imgURL,
+                  'loai': item.loai,
+                  'lastUpdated': _dateTimeConverter.encode(item.lastUpdated)
+                }),
+        _productUpdateAdapter = UpdateAdapter(
+            database,
+            'Product',
+            ['id'],
+            (Product item) => <String, Object?>{
+                  'id': item.id,
+                  'name': item.name,
+                  'price': item.price,
+                  'quantity': item.quantity,
+                  'description': item.description,
+                  'imgURL': item.imgURL,
+                  'loai': item.loai,
+                  'lastUpdated': _dateTimeConverter.encode(item.lastUpdated)
                 }),
         _productDeletionAdapter = DeletionAdapter(
             database,
@@ -171,10 +186,11 @@ class _$ProductDao extends ProductDao {
                   'id': item.id,
                   'name': item.name,
                   'price': item.price,
-                  'imgURL': item.imgURL,
                   'quantity': item.quantity,
                   'description': item.description,
-                  'loai': item.loai
+                  'imgURL': item.imgURL,
+                  'loai': item.loai,
+                  'lastUpdated': _dateTimeConverter.encode(item.lastUpdated)
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -185,6 +201,8 @@ class _$ProductDao extends ProductDao {
 
   final InsertionAdapter<Product> _productInsertionAdapter;
 
+  final UpdateAdapter<Product> _productUpdateAdapter;
+
   final DeletionAdapter<Product> _productDeletionAdapter;
 
   @override
@@ -194,10 +212,11 @@ class _$ProductDao extends ProductDao {
             id: row['id'] as int?,
             name: row['name'] as String,
             price: row['price'] as double,
-            imgURL: row['imgURL'] as String,
             quantity: row['quantity'] as int,
             description: row['description'] as String,
-            loai: row['loai'] as int));
+            imgURL: row['imgURL'] as String,
+            loai: row['loai'] as int,
+            lastUpdated: _dateTimeConverter.decode(row['lastUpdated'] as int)));
   }
 
   @override
@@ -212,16 +231,37 @@ class _$ProductDao extends ProductDao {
             id: row['id'] as int?,
             name: row['name'] as String,
             price: row['price'] as double,
-            imgURL: row['imgURL'] as String,
             quantity: row['quantity'] as int,
             description: row['description'] as String,
-            loai: row['loai'] as int),
+            imgURL: row['imgURL'] as String,
+            loai: row['loai'] as int,
+            lastUpdated: _dateTimeConverter.decode(row['lastUpdated'] as int)),
         arguments: [categoryKey]);
+  }
+
+  @override
+  Future<List<Product>> getAllProductsSortedByDate() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM Product ORDER BY lastUpdated DESC',
+        mapper: (Map<String, Object?> row) => Product(
+            id: row['id'] as int?,
+            name: row['name'] as String,
+            price: row['price'] as double,
+            quantity: row['quantity'] as int,
+            description: row['description'] as String,
+            imgURL: row['imgURL'] as String,
+            loai: row['loai'] as int,
+            lastUpdated: _dateTimeConverter.decode(row['lastUpdated'] as int)));
   }
 
   @override
   Future<void> insertProduct(Product product) async {
     await _productInsertionAdapter.insert(product, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<void> updateProduct(Product product) async {
+    await _productUpdateAdapter.update(product, OnConflictStrategy.abort);
   }
 
   @override
@@ -310,7 +350,7 @@ class _$UserDao extends UserDao {
 
   @override
   Future<User?> getUserByEmail(String email) async {
-    return _queryAdapter.query('SELECT * FROM User WHERE email = ?1',
+    return _queryAdapter.query('SELECT * FROM User WHERE email = ?1 LIMIT 1',
         mapper: (Map<String, Object?> row) => User(
             row['id'] as int?,
             row['name'] as String,
@@ -498,3 +538,6 @@ class _$WishlistDao extends WishlistDao {
     await _wishlistDeletionAdapter.delete(wishlist);
   }
 }
+
+// ignore_for_file: unused_element
+final _dateTimeConverter = DateTimeConverter();
