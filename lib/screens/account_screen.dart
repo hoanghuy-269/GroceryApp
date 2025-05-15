@@ -3,6 +3,7 @@ import 'package:grocery_app/screens/myprofile_detail_screen.dart';
 import 'package:grocery_app/screens/login_screen.dart';
 import 'package:grocery_app/models/user.dart';
 import 'package:grocery_app/database/app_database.dart';
+import 'package:grocery_app/screens/purchase_history_sreen.dart';
 
 class AccountScreen extends StatefulWidget {
   final String email;
@@ -89,7 +90,15 @@ class _AccountScreenState extends State<AccountScreen> {
                     });
                   }),
                   _buildListTile(Icons.delivery_dining, 'Delivery Access'),
-                  _buildListTile(Icons.payment, 'Payment Methods'),
+                  _buildListTile(Icons.payment, 'Payment Methods',(){
+                     Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => PurchaseHistoryPage(),
+                      ),
+                    );
+                  }),
                   _buildListTile(Icons.card_giftcard, 'Promo Card'),
                   _buildListTile(Icons.notifications, 'Notifications'),
                   _buildListTile(Icons.help, 'Help'),

@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:grocery_app/screens/botttom_navgation_srceen.dart';
 import 'package:grocery_app/database/app_database.dart';
 import 'package:grocery_app/models/user.dart';
+<<<<<<< HEAD
+import 'package:grocery_app/screens/sign_up_screen.dart'; // Import SignUp screen
+import 'package:shared_preferences/shared_preferences.dart';
+=======
 import 'package:grocery_app/screens/sign_up_screen.dart';
 import 'package:grocery_app/screens/admin_screen.dart';
+>>>>>>> 1ca1fd05f6feaf06c44266b5a91fa54fd747c375
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -28,6 +33,10 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     AppDatabase db =
+<<<<<<< HEAD
+         await $FloorAppDatabase.databaseBuilder('app_database.db').build();
+         User? user = await db.userDao.getUserByEmail(email);
+=======
         await $FloorAppDatabase.databaseBuilder('app_database.db').build();
 
     // Kiểm tra xem admin đã tồn tại chưa
@@ -54,11 +63,41 @@ class _LoginScreenState extends State<LoginScreen> {
         const SnackBar(content: Text('Admin account already exists!')),
       );
     }
+>>>>>>> 1ca1fd05f6feaf06c44266b5a91fa54fd747c375
 
     setState(() {
       _isLoading = false;
     });
+<<<<<<< HEAD
+
+    // Kiểm tra thông tin người dùng và mật khẩu
+    if (user != null && password == user.password) {
+      // Đăng nhập thành công, chuyển sang MyBottom và truyền email
+        await saveUserEmail(user.email);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder:
+              (context) => MyBottom(
+                userEmail: user.email,
+              ), // Truyền email người dùng vào MyBottom
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid email or password')),
+      );
+    }
+=======
+>>>>>>> 1ca1fd05f6feaf06c44266b5a91fa54fd747c375
   }
+
+  // hàm thống lưu email 
+  Future<void> saveUserEmail(String email) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('user_email', email);
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -114,6 +153,9 @@ class _LoginScreenState extends State<LoginScreen> {
               obscureText: _obscurePassword,
             ),
             const SizedBox(height: 20),
+<<<<<<< HEAD
+            ElevatedButton(onPressed: _login, child: const Text('Login')),
+=======
 
             ElevatedButton(
               onPressed: _isLoading ? null : _user,
@@ -123,8 +165,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       : const Text('Login'),
             ),
 
+>>>>>>> 1ca1fd05f6feaf06c44266b5a91fa54fd747c375
             const SizedBox(height: 20),
-
             TextButton(
               onPressed: () {
                 Navigator.push(

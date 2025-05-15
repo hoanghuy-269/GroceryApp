@@ -7,6 +7,5 @@ class OrderItem {
   final int orderId;
   final int productId;
   final int quantity;
-
   OrderItem(this.id, this.orderId, this.productId, this.quantity);
 }
