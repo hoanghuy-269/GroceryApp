@@ -24,7 +24,7 @@ class _ProductDetailState extends State<ProductDetail> {
   Future<void> _loadProductFromDB() async {
     _database = await $FloorAppDatabase.databaseBuilder('app_database.db').build();
 
-    final productFromDB =await _database.productDao.findProductByID(widget.product.id);
+    final productFromDB =await _database.productDao.findProductByID(widget.product.id!);
 
     if (productFromDB != null) {
       setState(() {

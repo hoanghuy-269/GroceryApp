@@ -14,5 +14,4 @@ abstract class PurchaseHistoryDao {
 
   @delete
   Future<void> deletePurchaseHistory(PurchaseHistory purchaseHistory);
-  
 }

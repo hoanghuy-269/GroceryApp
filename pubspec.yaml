@@ -36,11 +36,9 @@ dependencies:
   path_provider: ^2.0.10
   floor: ^1.4.0
   floor_annotation: ^1.4.0
-<<<<<<< HEAD
   shared_preferences: ^2.5.3
-=======
   intl: ^0.18.1
->>>>>>> 1ca1fd05f6feaf06c44266b5a91fa54fd747c375
+
 
 dev_dependencies:
   flutter_test:
