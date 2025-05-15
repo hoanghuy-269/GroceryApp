@@ -27,10 +27,7 @@ abstract class AppDatabase extends FloorDatabase {
   ProductDao get productDao;
   UserDao get userDao;
   OrderDao get orderDao;
-  OrderItemDao get orderItemDao;  // Đảm bảo có DAO cho OrderItem
-  WishlistDao get wishlistDao;    // Đảm bảo có DAO cho Wishlist
   OrderItemDao get orderItemDao;
   WishlistDao get wishlistDao;
   PurchaseHistoryDao get purchaseHistoryDao;
 }
-

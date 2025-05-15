@@ -10,65 +10,42 @@ class ProductListScreen extends StatefulWidget {
 }
 
 class _ProductListScreenState extends State<ProductListScreen> {
-  List<Product> allProducts = [
-    Product(
-      id: 1,
-      name: 'Bánh Oreo',
-      price: 20000,
-      imgURL: 'assets/images/doan_banhoreo.png',
-      quantity: 1,
-      description: 'Bánh quy nhân kem.',
-      loai: 0,
-    ),
-    Product(
-      id: 2,
-      name: 'Sữa Vinamilk',
-      price: 15000,
-      imgURL: 'assets/images/sua_vinamilk.png',
-      quantity: 1,
-      description: 'Sữa tươi nguyên chất.',
-      loai: 0,
-    ),
-  ];
+  List<Product> allProducts = [];
 
   List<Product> cartItems = [];
-void _addToCart(Product product) {
-  setState(() {
-    // Tìm trong giỏ hàng theo id
-    final index = cartItems.indexWhere((item) => item.id == product.id);
+  void _addToCart(Product product) {
+    setState(() {
+      // Tìm trong giỏ hàng theo id
+      final index = cartItems.indexWhere((item) => item.id == product.id);
 
-    if (index != -1) {
-      final updated = cartItems[index].copyWith(
-        quantity: cartItems[index].quantity + 1,
-      );
-      cartItems[index] = updated;
-      debugPrint('[UPDATE] Đã tăng số lượng: ${updated.toString()}');
-    } else {
-      final newProduct = product.copyWith(quantity: 1);
-      cartItems.add(newProduct);
-      debugPrint('[ADD NEW] Đã thêm mới: ${newProduct.toString()}');
-    }
+      if (index != -1) {
+        final updated = cartItems[index].copyWith(
+          quantity: cartItems[index].quantity + 1,
+        );
+        cartItems[index] = updated;
+        debugPrint('[UPDATE] Đã tăng số lượng: ${updated.toString()}');
+      } else {
+        final newProduct = product.copyWith(quantity: 1);
+        cartItems.add(newProduct);
+        debugPrint('[ADD NEW] Đã thêm mới: ${newProduct.toString()}');
+      }
 
-    _debugCartContents(); // In danh sách giỏ hàng sau khi cập nhật
-  });
-}
-void _debugCartContents() {
-  debugPrint('=== DANH SÁCH GIỎ HÀNG HIỆN TẠI ===');
-  for (var item in cartItems) {
-    debugPrint('${item.toString()}');
+      _debugCartContents(); // In danh sách giỏ hàng sau khi cập nhật
+    });
   }
-  debugPrint('===================================');
-}
 
-
-
+  void _debugCartContents() {
+    debugPrint('=== DANH SÁCH GIỎ HÀNG HIỆN TẠI ===');
+    for (var item in cartItems) {
+      debugPrint('${item.toString()}');
+    }
+    debugPrint('===================================');
+  }
 
   void _goToCart() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => CartScreen(cartItems: cartItems),
-      ),
+      MaterialPageRoute(builder: (_) => CartScreen(cartItems: cartItems)),
     );
   }
 
@@ -78,10 +55,7 @@ void _debugCartContents() {
       appBar: AppBar(
         title: Text('Danh sách sản phẩm'),
         actions: [
-          IconButton(
-            icon: Icon(Icons.shopping_cart),
-            onPressed: _goToCart,
-          ),
+          IconButton(icon: Icon(Icons.shopping_cart), onPressed: _goToCart),
         ],
       ),
       body: ListView.builder(
