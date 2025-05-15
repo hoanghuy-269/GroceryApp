@@ -1,36 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_app/models/product.dart';
 
-class ProductCart extends StatefulWidget {
+class ProductCard extends StatelessWidget {
   final Product product;
   final Function(Product) onFavorite;
-  final Function(Product) onAddToCart; // Truyền hàm thêm vào giỏ hàng
+  final Function(Product) onAddToCart;
+  final bool isFavorite;
 
-  const ProductCart({
+  const ProductCard({
     super.key,
     required this.product,
     required this.onFavorite,
-    required this.onAddToCart, required bool isFavorite, required void Function(Product product, int delta) onUpdateQuantity,
+    required this.onAddToCart,
+    required this.isFavorite,
   });
 
   @override
-  State<ProductCart> createState() => _ProductCartState();
-}
-
-class _ProductCartState extends State<ProductCart> {
-  bool isFavorite = false;
-
-  void toggleFavorite() {
-    setState(() {
-      isFavorite = !isFavorite;
-    });
-    widget.onFavorite(widget.product); // Gọi hàm onFavorite từ HomeScreen
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final product = widget.product;
-
     return Card(
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -66,7 +52,7 @@ class _ProductCartState extends State<ProductCart> {
                 top: 6,
                 right: 6,
                 child: InkWell(
-                  onTap: toggleFavorite,
+                  onTap: () => onFavorite(product),
                   child: Icon(
                     isFavorite ? Icons.favorite : Icons.favorite_border,
                     color: isFavorite ? Colors.red : Colors.grey,
@@ -102,7 +88,7 @@ class _ProductCartState extends State<ProductCart> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      widget.onAddToCart(widget.product); // Gọi hàm onAddToCart từ HomeScreen
+                      onAddToCart(product); // Gọi hàm onAddToCart từ HomeScreen
                     },
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
