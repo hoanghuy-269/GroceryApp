@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:grocery_app/screens/botttom_navgation_srceen.dart'; // Import MyBottom screen
-import 'package:grocery_app/database/app_database.dart'; // Import database
+import 'package:grocery_app/screens/botttom_navgation_srceen.dart';
+import 'package:grocery_app/database/app_database.dart';
 import 'package:grocery_app/models/user.dart';
+<<<<<<< HEAD
 import 'package:grocery_app/screens/sign_up_screen.dart'; // Import SignUp screen
 import 'package:shared_preferences/shared_preferences.dart';
+=======
+import 'package:grocery_app/screens/sign_up_screen.dart';
+import 'package:grocery_app/screens/admin_screen.dart';
+>>>>>>> 1ca1fd05f6feaf06c44266b5a91fa54fd747c375
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,33 +21,54 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
-  bool _obscurePassword = true; // Trạng thái hiển thị mật khẩu
+  bool _obscurePassword = true;
 
-  // Hàm kiểm tra đăng nhập
-  _login() async {
-    String email = _emailController.text;
-    String password = _passwordController.text;
-
-    // Kiểm tra email và mật khẩu
-    if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter both email and password')),
-      );
-      return;
-    }
+  // Hàm tạo tài khoản admin
+  _createAdminAccount() async {
+    const adminEmail = 'admin@gmail.com';
+    const adminPassword = 'admin123';
 
     setState(() {
       _isLoading = true;
     });
 
-    // Lấy thông tin người dùng từ cơ sở dữ liệu
     AppDatabase db =
+<<<<<<< HEAD
          await $FloorAppDatabase.databaseBuilder('app_database.db').build();
          User? user = await db.userDao.getUserByEmail(email);
+=======
+        await $FloorAppDatabase.databaseBuilder('app_database.db').build();
+
+    // Kiểm tra xem admin đã tồn tại chưa
+    User? existingAdmin = await db.userDao.getUserByEmail(adminEmail);
+
+    if (existingAdmin == null) {
+      final adminUser = User(
+        null,
+        "",
+        adminEmail,
+        "",
+        adminPassword,
+        'admin',
+
+        // Thêm các trường khác nếu cần
+      ); // Thêm các trường khác nếu cần
+
+      await db.userDao.insertUser(adminUser);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Admin account created successfully!')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Admin account already exists!')),
+      );
+    }
+>>>>>>> 1ca1fd05f6feaf06c44266b5a91fa54fd747c375
 
     setState(() {
       _isLoading = false;
     });
+<<<<<<< HEAD
 
     // Kiểm tra thông tin người dùng và mật khẩu
     if (user != null && password == user.password) {
@@ -62,6 +88,8 @@ class _LoginScreenState extends State<LoginScreen> {
         const SnackBar(content: Text('Invalid email or password')),
       );
     }
+=======
+>>>>>>> 1ca1fd05f6feaf06c44266b5a91fa54fd747c375
   }
 
   // hàm thống lưu email 
@@ -75,13 +103,14 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Center(child: const Text('Login')),
+        title: const Center(child: Text('Login')),
         backgroundColor: const Color.fromARGB(255, 40, 223, 122),
+        // Bỏ actions nếu không cần
       ),
       body: Container(
         padding: const EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 40, 223, 122),
+        decoration: const BoxDecoration(
+          color: Color.fromARGB(255, 40, 223, 122),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -124,7 +153,19 @@ class _LoginScreenState extends State<LoginScreen> {
               obscureText: _obscurePassword,
             ),
             const SizedBox(height: 20),
+<<<<<<< HEAD
             ElevatedButton(onPressed: _login, child: const Text('Login')),
+=======
+
+            ElevatedButton(
+              onPressed: _isLoading ? null : _user,
+              child:
+                  _isLoading
+                      ? CircularProgressIndicator(color: Colors.white)
+                      : const Text('Login'),
+            ),
+
+>>>>>>> 1ca1fd05f6feaf06c44266b5a91fa54fd747c375
             const SizedBox(height: 20),
             TextButton(
               onPressed: () {
@@ -133,14 +174,68 @@ class _LoginScreenState extends State<LoginScreen> {
                   MaterialPageRoute(builder: (context) => const SignUpScreen()),
                 );
               },
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.redAccent, // Thay đổi màu chữ tại đây
-              ),
+              style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
               child: const Text('Create a new account'),
+            ),
+
+            // Nút tạo admin luôn hiển thị
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _isLoading ? null : _createAdminAccount,
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child:
+                  _isLoading
+                      ? CircularProgressIndicator(color: Colors.white)
+                      : const Text('Create Admin Account'),
             ),
           ],
         ),
       ),
     );
+  }
+
+  // Hàm kiểm tra đăng nhập (giữ nguyên)
+  _user() async {
+    String email = _emailController.text;
+    String password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter both email and password')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    AppDatabase db =
+        await $FloorAppDatabase.databaseBuilder('app_database.db').build();
+    User? user = await db.userDao.getUserByEmail(email);
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (user != null && password == user.password) {
+      if (user.role == 'admin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => AdminScreen()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MyBottom(userEmail: user.email),
+          ),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid email or password')),
+      );
+    }
   }
 }

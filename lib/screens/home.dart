@@ -60,6 +60,7 @@ class _HomeState extends State<Home> {
     _database =
         await $FloorAppDatabase.databaseBuilder('app_database.db').build();
 <<<<<<< HEAD
+<<<<<<< HEAD
    // await _database.productDao.deleteAllProducts();
    // await _addSampleProducts(); // Thêm sản phẩm mẫu
      await _loadProducts(); // Tải danh sách sản phẩm
@@ -217,6 +218,40 @@ class _HomeState extends State<Home> {
       ); // Thêm từng sản phẩm vào cơ sở dữ liệu
     }
   }
+=======
+    // await _addSampleProducts(); // Thêm sản phẩm mẫu
+    await _loadProducts(); // Tải danh sách sản phẩm
+  }
+
+  // Thêm sản phẩm mẫu vào cơ sở dữ liệu
+  // Future<void> _addSampleProducts() async {
+  //   final sampleProducts = [
+  //     Product(
+  //       name: 'Cháo Gấu Đỏ',
+  //       price: 15,
+  //       imgURL: 'assets/images/chao_gaudo.png',
+  //       description: 'Cháo ăn liền tiện lợi, thơm ngon.',
+  //       quantity: 120,
+  //       loai: 3,
+  //     ),
+  //     Product(
+  //       name: 'Bánh Petit',
+  //       price: 25,
+  //       imgURL: 'assets/images/doan_petit.png',
+  //       description: 'Bánh quy mềm thơm bơ, thích hợp dùng kèm trà hoặc sữa.',
+  //       quantity: 80,
+  //       loai: 1,
+  //     ),
+  //     // Thêm các sản phẩm mẫu khác nếu cần
+  //   ];
+
+  //   for (final product in sampleProducts) {
+  //     await _database.productDao.insertProduct(
+  //       product,
+  //     ); // Thêm từng sản phẩm vào cơ sở dữ liệu
+  //   }
+  // }
+>>>>>>> 1ca1fd05f6feaf06c44266b5a91fa54fd747c375
 
   Future<void> _loadProducts() async {
     setState(() {
