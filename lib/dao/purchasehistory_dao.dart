@@ -1,9 +1,11 @@
 import 'package:floor/floor.dart';
-import 'package:grocery_app/models/PurchaseHistory.dart';
+import 'package:grocery_app/models/purchaseHistory.dart';
 
 @dao
 abstract class PurchaseHistoryDao {
-  @Query('SELECT * FROM purchase_history WHERE email = :email ORDER BY date DESC')
+  @Query(
+    'SELECT * FROM purchase_history WHERE email = :email ORDER BY date DESC',
+  )
   Future<List<PurchaseHistory>> getHistoryByEmail(String email);
 
   @insert
@@ -14,4 +16,7 @@ abstract class PurchaseHistoryDao {
 
   @delete
   Future<void> deletePurchaseHistory(PurchaseHistory purchaseHistory);
+
+  @Query('SELECT * FROM purchase_history')
+  Future<List<PurchaseHistory>> getAllOrders();
 }

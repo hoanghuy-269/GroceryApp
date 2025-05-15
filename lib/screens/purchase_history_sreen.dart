@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_app/database/app_database.dart';
-import 'package:grocery_app/models/PurchaseHistory.dart';
+import 'package:grocery_app/models/purchaseHistory.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PurchaseHistoryPage extends StatefulWidget {
@@ -24,9 +24,10 @@ class _PurchaseHistoryPageState extends State<PurchaseHistoryPage> {
   }
 
   Future<void> _initDatabaseAndLoadData() async {
-    try { 
+    try {
       // Khởi tạo database
-      _database = await $FloorAppDatabase.databaseBuilder('app_database.db').build();
+      _database =
+          await $FloorAppDatabase.databaseBuilder('app_database.db').build();
 
       // Lấy email đã lưu
       final prefs = await SharedPreferences.getInstance();
@@ -64,9 +65,7 @@ class _PurchaseHistoryPageState extends State<PurchaseHistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Lịch Sử Mua Hàng'),
-      ),
+      appBar: AppBar(title: const Text('Lịch Sử Mua Hàng')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -75,16 +74,17 @@ class _PurchaseHistoryPageState extends State<PurchaseHistoryPage> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: Text(
-                  'Email: $_userEmail', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  'Email: $_userEmail',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
               ),
             if (_isLoading)
               const Center(child: CircularProgressIndicator())
             else if (_errorMessage != null)
-              Text(
-                _errorMessage!,
-                style: const TextStyle(color: Colors.red),
-              )
+              Text(_errorMessage!, style: const TextStyle(color: Colors.red))
             else if (_purchases.isEmpty)
               const Text('Không tìm thấy lịch sử mua hàng.')
             else
@@ -101,7 +101,9 @@ class _PurchaseHistoryPageState extends State<PurchaseHistoryPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('Số lượng: ${purchase.quantity}'),
-                            Text('Tổng tiền: ${purchase.total.toStringAsFixed(2)} VNĐ'),
+                            Text(
+                              'Tổng tiền: ${purchase.total.toStringAsFixed(2)} VNĐ',
+                            ),
                             Text('Ngày: ${purchase.date}'),
                           ],
                         ),

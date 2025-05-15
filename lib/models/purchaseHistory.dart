@@ -9,6 +9,7 @@ class PurchaseHistory {
   final int quantity;
   final double total;
   final String date;
+  final String status;
   PurchaseHistory({
     this.id,
     required this.email,
@@ -16,5 +17,6 @@ class PurchaseHistory {
     required this.quantity,
     required this.total,
     required this.date,
+    this.status = 'Chờ xác nhận',
   });
 }
