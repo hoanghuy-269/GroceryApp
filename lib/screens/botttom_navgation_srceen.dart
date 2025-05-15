@@ -33,13 +33,39 @@ class _MyBottomState extends State<MyBottom> {
 
   // Hàm thêm sản phẩm vào giỏ hàng
   void _addToCart(Product product) {
-    setState(() {
-      cartProducts.add(product); // Thêm sản phẩm vào giỏ hàng
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${product.name} đã được thêm vào giỏ hàng')),
-    );
+  setState(() {
+    final index = cartProducts.indexWhere((item) => item.id == product.id);
+
+    if (index != -1) {
+      // Nếu đã có sản phẩm => tăng số lượng
+      final updatedProduct = cartProducts[index].copyWith(
+        quantity: cartProducts[index].quantity + 1,
+      );
+      cartProducts[index] = updatedProduct;
+      debugPrint('[CART] Tăng số lượng: ${updatedProduct.toString()}');
+    } else {
+      // Nếu chưa có => thêm mới với quantity = 1
+      final newProduct = product.copyWith(quantity: 1);
+      cartProducts.add(newProduct);
+      debugPrint('[CART] Thêm mới: ${newProduct.toString()}');
+    }
+
+    _debugCartContents(); // In log toàn bộ giỏ hàng
+  });
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('${product.name} đã được thêm vào giỏ hàng')),
+  );
+}
+void _debugCartContents() {
+  debugPrint('------ Danh sách giỏ hàng hiện tại ------');
+  for (var item in cartProducts) {
+    debugPrint('${item.toString()}');
   }
+  debugPrint('----------------------------------------');
+}
+
+
 
   // Hàm xử lý sự kiện khi người dùng chuyển tab
   void _onPress(int index) {
