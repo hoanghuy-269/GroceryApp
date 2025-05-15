@@ -3,6 +3,7 @@ import 'package:grocery_app/screens/botttom_navgation_srceen.dart'; // Import My
 import 'package:grocery_app/database/app_database.dart'; // Import database
 import 'package:grocery_app/models/user.dart';
 import 'package:grocery_app/screens/sign_up_screen.dart'; // Import SignUp screen
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -36,8 +37,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
     // Lấy thông tin người dùng từ cơ sở dữ liệu
     AppDatabase db =
-        await $FloorAppDatabase.databaseBuilder('app_database.db').build();
-    User? user = await db.userDao.getUserByEmail(email);
+         await $FloorAppDatabase.databaseBuilder('app_database.db').build();
+         User? user = await db.userDao.getUserByEmail(email);
 
     setState(() {
       _isLoading = false;
@@ -46,6 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
     // Kiểm tra thông tin người dùng và mật khẩu
     if (user != null && password == user.password) {
       // Đăng nhập thành công, chuyển sang MyBottom và truyền email
+        await saveUserEmail(user.email);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -61,6 +63,13 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
   }
+
+  // hàm thống lưu email 
+  Future<void> saveUserEmail(String email) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('user_email', email);
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -115,10 +124,8 @@ class _LoginScreenState extends State<LoginScreen> {
               obscureText: _obscurePassword,
             ),
             const SizedBox(height: 20),
-
             ElevatedButton(onPressed: _login, child: const Text('Login')),
             const SizedBox(height: 20),
-
             TextButton(
               onPressed: () {
                 Navigator.push(

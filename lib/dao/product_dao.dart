@@ -18,4 +18,11 @@ abstract class ProductDao {
 
   @Query("SELECT * FROM Product Where loai = :categoryKey")
   Future<List<Product>> getProductByCategory(int categoryKey);
+
+@Query('SELECT * FROM Product Where id = :id')
+  Future<Product?> findProductByID(int id);
+
+  @update
+  Future<void> updateProduct(Product product); 
+
 }
