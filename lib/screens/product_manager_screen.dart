@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:grocery_app/dao/product_dao.dart';
 import '../database/app_database.dart';
 import '../models/product.dart';
+import 'package:grocery_app/screens/login_screen.dart';
 
 class ProductManagementScreen extends StatefulWidget {
   @override
@@ -94,9 +95,49 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
       appBar: AppBar(
         title: Text('Quản lý sản phẩm'),
         actions: [
-          IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () => _showAddDialog(context),
+          ElevatedButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('Xác nhận đăng xuất'),
+                    content: const Text(
+                      'Bạn có chắc chắn muốn đăng xuất không?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('Hủy'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const LoginScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text('Đăng xuất'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+            child: const Text('Log Out'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.blueAccent,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              textStyle: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -418,14 +459,14 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
               onPressed: () async {
                 if (_validateInputs()) {
                   final newProduct = Product(
-                   id: null,
+                    id: null,
                     name: _nameController.text,
                     price: double.parse(_priceController.text),
                     quantity: int.parse(_quantityController.text),
                     description: _descriptionController.text,
                     imgURL: _imageUrlController.text,
                     loai: 1,
-                    lastUpdated: _selectedDate, 
+                    lastUpdated: _selectedDate,
                     status: '',
                   );
                   await productDao.insertProduct(newProduct);
@@ -543,7 +584,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                     imgURL: _imageUrlController.text,
                     loai: product.loai,
                     lastUpdated: _selectedDate,
-                     status: '',
+                    status: '',
                   );
                   await productDao.updateProduct(updatedProduct);
                   await _refreshProductList();

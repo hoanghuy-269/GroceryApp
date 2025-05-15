@@ -45,16 +45,15 @@ class _HomeState extends State<Home> {
   Future<void> _initDatabase() async {
     _database =
         await $FloorAppDatabase.databaseBuilder('app_database.db').build();
-    await _database.productDao.deleteAllProducts();
-    await _addSampleProducts(); // Thêm sản phẩm mẫu
-   //  await _loadProducts(); // Tải danh sách sản phẩm
+    //await _database.productDao.deleteAllProducts();
+    //await _addSampleProducts(); // Thêm sản phẩm mẫu
+    await _loadProducts(); // Tải danh sách sản phẩm
   }
-  
 
   // Thêm sản phẩm mẫu vào cơ sở dữ liệu
   Future<void> _addSampleProducts() async {
     final sampleProducts = [
-      Product( 
+      Product(
         id: 1,
         name: 'Bánh Petit',
         price: 25,
@@ -63,11 +62,11 @@ class _HomeState extends State<Home> {
         quantity: 80,
         loai: 1,
         status: "Còn hàng",
-        lastUpdated: DateTime(1)
+        lastUpdated: DateTime(1),
       ),
       Product(
         id: 2,
-        
+
         name: 'Gia vị kho cá',
         price: 18,
         imgURL: 'assets/images/giavi_khoca.png',
@@ -76,8 +75,7 @@ class _HomeState extends State<Home> {
         quantity: 60,
         loai: 4,
         status: "Còn hàng",
-         lastUpdated: DateTime(1)
-
+        lastUpdated: DateTime(1),
       ),
 
       // Product(

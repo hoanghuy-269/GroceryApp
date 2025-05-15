@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:grocery_app/screens/botttom_navgation_srceen.dart';
 import 'package:grocery_app/database/app_database.dart';
 import 'package:grocery_app/models/user.dart';
-import 'package:grocery_app/screens/sign_up_screen.dart'; // Import SignUp screen
+import 'package:grocery_app/screens/sign_up_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:grocery_app/screens/admin_screen.dart';
-
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -20,76 +19,72 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
-  // Hàm tạo tài khoản admin
-  _createAdminAccount() async {
-    const adminEmail = 'admin@gmail.com';
-    const adminPassword = 'admin123';
+  bool _adminCreated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAdminExists();
+  }
+
+  Future<void> _checkAdminExists() async {
+    final db =
+        await $FloorAppDatabase.databaseBuilder('app_database.db').build();
+    User? existingAdmin = await db.userDao.getUserByEmail('admin@example.com');
+    if (existingAdmin != null) {
+      setState(() {
+        _adminCreated = true;
+      });
+    }
+  }
+
+  Future<void> saveUserEmail(String email) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_email', email);
+  }
+
+  Future<void> _createAdminAccount() async {
+    if (_adminCreated) return;
 
     setState(() {
       _isLoading = true;
     });
 
-    AppDatabase db =
-         await $FloorAppDatabase.databaseBuilder('app_database.db').build();
-         User? user = await db.userDao.getUserByEmail(adminEmail);
+    final db =
         await $FloorAppDatabase.databaseBuilder('app_database.db').build();
 
-    // Kiểm tra xem admin đã tồn tại chưa
-    User? existingAdmin = await db.userDao.getUserByEmail(adminEmail);
-
-    if (existingAdmin == null) {
-      final adminUser = User(
-        null,
-        "",
-        adminEmail,
-        "",
-        adminPassword,
-        'admin',
-
-        // Thêm các trường khác nếu cần
-      ); // Thêm các trường khác nếu cần
-
-      await db.userDao.insertUser(adminUser);
+    User? existingAdmin = await db.userDao.getUserByEmail('admin@example.com');
+    if (existingAdmin != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Admin account created successfully!')),
+        const SnackBar(content: Text('Admin account already exists')),
       );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Admin account already exists!')),
-      );
+      setState(() {
+        _isLoading = false;
+        _adminCreated = true;
+      });
+      return;
     }
+
+    User adminUser = User(
+      null,
+      "",
+      'admin@example.com',
+      "",
+      'admin123',
+      'admin',
+    );
+
+    await db.userDao.insertUser(adminUser);
 
     setState(() {
       _isLoading = false;
+      _adminCreated = true;
     });
 
-    // Kiểm tra thông tin người dùng và mật khẩu
-    if (user != null && _passwordController == user.password) {
-      // Đăng nhập thành công, chuyển sang MyBottom và truyền email
-        await saveUserEmail(user.email);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder:
-              (context) => MyBottom(
-                userEmail: user.email,
-              ), // Truyền email người dùng vào MyBottom
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid email or password')),
-      );
-    }
-
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Admin account created successfully')),
+    );
   }
-
-  // hàm thống lưu email 
-  Future<void> saveUserEmail(String email) async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('user_email', email);
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +92,6 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         title: const Center(child: Text('Login')),
         backgroundColor: const Color.fromARGB(255, 40, 223, 122),
-        // Bỏ actions nếu không cần
       ),
       body: Container(
         padding: const EdgeInsets.all(16.0),
@@ -112,7 +106,6 @@ class _LoginScreenState extends State<LoginScreen> {
               backgroundImage: AssetImage("assets/images/avata.jpg"),
             ),
             const SizedBox(height: 20),
-
             TextField(
               controller: _emailController,
               decoration: InputDecoration(
@@ -123,7 +116,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             const SizedBox(height: 10),
-
             TextField(
               controller: _passwordController,
               decoration: InputDecoration(
@@ -152,7 +144,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ? CircularProgressIndicator(color: Colors.white)
                       : const Text('Login'),
             ),
-
             const SizedBox(height: 20),
             TextButton(
               onPressed: () {
@@ -164,25 +155,25 @@ class _LoginScreenState extends State<LoginScreen> {
               style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
               child: const Text('Create a new account'),
             ),
-
-            // Nút tạo admin luôn hiển thị
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _isLoading ? null : _createAdminAccount,
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child:
-                  _isLoading
-                      ? CircularProgressIndicator(color: Colors.white)
-                      : const Text('Create Admin Account'),
-            ),
+            if (!_adminCreated)
+              ElevatedButton(
+                onPressed: _isLoading ? null : _createAdminAccount,
+                child:
+                    _isLoading
+                        ? CircularProgressIndicator(color: Colors.white)
+                        : const Text('Create Admin Account'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepPurple,
+                ),
+              ),
           ],
         ),
       ),
     );
   }
 
-  // Hàm kiểm tra đăng nhập (giữ nguyên)
-  _user() async {
+  Future<void> _user() async {
     String email = _emailController.text;
     String password = _passwordController.text;
 
@@ -206,6 +197,8 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     if (user != null && password == user.password) {
+      await saveUserEmail(user.email);
+
       if (user.role == 'admin') {
         Navigator.pushReplacement(
           context,
