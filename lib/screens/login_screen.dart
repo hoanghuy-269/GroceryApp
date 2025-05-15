@@ -2,13 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:grocery_app/screens/botttom_navgation_srceen.dart';
 import 'package:grocery_app/database/app_database.dart';
 import 'package:grocery_app/models/user.dart';
-<<<<<<< HEAD
 import 'package:grocery_app/screens/sign_up_screen.dart'; // Import SignUp screen
 import 'package:shared_preferences/shared_preferences.dart';
-=======
-import 'package:grocery_app/screens/sign_up_screen.dart';
 import 'package:grocery_app/screens/admin_screen.dart';
->>>>>>> 1ca1fd05f6feaf06c44266b5a91fa54fd747c375
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -33,10 +30,8 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     AppDatabase db =
-<<<<<<< HEAD
          await $FloorAppDatabase.databaseBuilder('app_database.db').build();
-         User? user = await db.userDao.getUserByEmail(email);
-=======
+         User? user = await db.userDao.getUserByEmail(adminEmail);
         await $FloorAppDatabase.databaseBuilder('app_database.db').build();
 
     // Kiểm tra xem admin đã tồn tại chưa
@@ -63,15 +58,13 @@ class _LoginScreenState extends State<LoginScreen> {
         const SnackBar(content: Text('Admin account already exists!')),
       );
     }
->>>>>>> 1ca1fd05f6feaf06c44266b5a91fa54fd747c375
 
     setState(() {
       _isLoading = false;
     });
-<<<<<<< HEAD
 
     // Kiểm tra thông tin người dùng và mật khẩu
-    if (user != null && password == user.password) {
+    if (user != null && _passwordController == user.password) {
       // Đăng nhập thành công, chuyển sang MyBottom và truyền email
         await saveUserEmail(user.email);
       Navigator.pushReplacement(
@@ -88,8 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
         const SnackBar(content: Text('Invalid email or password')),
       );
     }
-=======
->>>>>>> 1ca1fd05f6feaf06c44266b5a91fa54fd747c375
+
   }
 
   // hàm thống lưu email 
@@ -153,10 +145,6 @@ class _LoginScreenState extends State<LoginScreen> {
               obscureText: _obscurePassword,
             ),
             const SizedBox(height: 20),
-<<<<<<< HEAD
-            ElevatedButton(onPressed: _login, child: const Text('Login')),
-=======
-
             ElevatedButton(
               onPressed: _isLoading ? null : _user,
               child:
@@ -165,7 +153,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       : const Text('Login'),
             ),
 
->>>>>>> 1ca1fd05f6feaf06c44266b5a91fa54fd747c375
             const SizedBox(height: 20),
             TextButton(
               onPressed: () {

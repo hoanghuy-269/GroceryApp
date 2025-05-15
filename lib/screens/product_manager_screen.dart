@@ -418,13 +418,15 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
               onPressed: () async {
                 if (_validateInputs()) {
                   final newProduct = Product(
+                   id: null,
                     name: _nameController.text,
                     price: double.parse(_priceController.text),
                     quantity: int.parse(_quantityController.text),
                     description: _descriptionController.text,
                     imgURL: _imageUrlController.text,
                     loai: 1,
-                    lastUpdated: _selectedDate,
+                    lastUpdated: _selectedDate, 
+                    status: '',
                   );
                   await productDao.insertProduct(newProduct);
                   await _refreshProductList();
@@ -541,6 +543,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                     imgURL: _imageUrlController.text,
                     loai: product.loai,
                     lastUpdated: _selectedDate,
+                     status: '',
                   );
                   await productDao.updateProduct(updatedProduct);
                   await _refreshProductList();

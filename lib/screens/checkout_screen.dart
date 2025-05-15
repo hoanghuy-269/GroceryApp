@@ -32,7 +32,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Future<void> _loadProduct() async {
     final productDao = _database.productDao;
-    final productFromDB = await productDao.findProductByID(widget.product.id);
+    final productFromDB = await productDao.findProductByID(widget.product.id!);
     if (productFromDB != null) {
       setState(() {
         _product = productFromDB;
@@ -71,7 +71,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       product: _product!.name,
       quantity: _quantity,
       total: totalPrice,
-      date: DateTime.now().toIso8601String(),
+      date: DateTime.now().toString(),
     );
 
     // Lưu lịch sử mua hàng
