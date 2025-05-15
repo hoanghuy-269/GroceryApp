@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_app/models/product.dart';
 import 'package:grocery_app/screens/favourite_screen.dart';
-import 'package:grocery_app/database/app_database.dart'; // Import database
+import 'package:grocery_app/database/app_database.dart';
+import 'package:grocery_app/screens/product_detail_screen.dart';
 
 class Home extends StatefulWidget {
   final Function(Product) onAddToCart; // Hàm thêm vào giỏ hàng
@@ -44,31 +45,149 @@ class _HomeState extends State<Home> {
   Future<void> _initDatabase() async {
     _database =
         await $FloorAppDatabase.databaseBuilder('app_database.db').build();
+    await _database.productDao.deleteAllProducts();
     await _addSampleProducts(); // Thêm sản phẩm mẫu
-    await _loadProducts(); // Tải danh sách sản phẩm
+   //  await _loadProducts(); // Tải danh sách sản phẩm
   }
+  
 
   // Thêm sản phẩm mẫu vào cơ sở dữ liệu
   Future<void> _addSampleProducts() async {
     final sampleProducts = [
-      Product(
-        name: 'Cháo Gấu Đỏ',
-        price: 15,
-        imgURL: 'assets/images/chao_gaudo.png',
-        description: 'Cháo ăn liền tiện lợi, thơm ngon.',
-        quantity: 120,
-        loai: 3,
-      ),
-      Product(
+      Product( 
+        id: 1,
         name: 'Bánh Petit',
         price: 25,
         imgURL: 'assets/images/doan_petit.png',
         description: 'Bánh quy mềm thơm bơ, thích hợp dùng kèm trà hoặc sữa.',
         quantity: 80,
         loai: 1,
+        status: "Còn hàng",
+        lastUpdated: DateTime(1)
       ),
-    ];
+      Product(
+        id: 2,
+        
+        name: 'Gia vị kho cá',
+        price: 18,
+        imgURL: 'assets/images/giavi_khoca.png',
+        description:
+            'Gia vị đậm đà, giúp món cá kho thơm ngon, chuẩn vị truyền thống.',
+        quantity: 60,
+        loai: 4,
+        status: "Còn hàng",
+         lastUpdated: DateTime(1)
 
+      ),
+
+      // Product(
+      //   id: 3,
+      //   name: 'Bộ dụng cụ tô màu cho bé',
+      //   price: 50,
+      //   imgURL: 'assets/images/hoctap_emtapve.png',
+      //   description:
+      //       'Bộ tô màu an toàn cho trẻ em, kích thích khả năng sáng tạo.',
+      //   quantity: 45,
+      //   loai: 5,
+      //   status: "Còn hàng",
+      // ),
+      // Product(
+      //   id: 4,
+      //   name: 'Mì tôm Hảo Hảo',
+      //   price: 7,
+      //   imgURL: 'assets/images/mi_haohao.png',
+      //   description: 'Mì ăn liền vị chua cay, ngon tuyệt cho mọi bữa ăn nhanh.',
+      //   quantity: 200,
+      //   loai: 3,
+      //   status: "Còn hàng",
+      // ),
+      // Product(
+      //   id: 5,thong
+      //   name: 'Bột Giặt Omo',
+      //   price: 45,
+      //   imgURL: 'assets/images/trongnha_omo.png',
+      //   description: 'Bột giặt sạch vượt trội, đánh bay mọi vết bẩn cứng đầu.',
+      //   quantity: 90,
+      //   loai: 6,
+      //   status: "Còn hàng",
+      // ),
+      // Product(
+      //   id: 6,
+      //   name: 'Bánh Oreo',
+      //   price: 22,
+      //   imgURL: 'assets/images/doan_banhoreo.png',
+      //   description: 'Bánh quy nhân kem sữa, giòn tan, ngọt ngào.',
+      //   quantity: 110,
+      //   loai: 1,
+      //   status: "Còn hàng",
+      // ),
+      // Product(
+      //   id: 7,
+      //   name: 'CocaCola',
+      //   price: 8,
+      //   imgURL: 'assets/images/douong_cocacola.png',
+      //   description:
+      //       'Nước giải khát mát lạnh, sảng khoái tức thì, thích hợp cho mọi độ tuổi.',
+      //   quantity: 150,
+      //   loai: 2,
+      //   status: "Còn hàng",
+      // ),
+      // Product(
+      //   id: 8,
+      //   name: 'Gia Vị Bột Chiên',
+      //   price: 20,
+      //   imgURL: 'assets/images/giavi_botchien.png',
+      //   description:
+      //       'Gia vị pha sẵn giúp món bột chiên thêm hấp dẫn và đậm đà.',
+      //   quantity: 65,
+      //   loai: 3,
+      //   status: "Còn hàng",
+      // ),
+      // Product(
+      //   id: 9,
+      //   name: 'Hộp bút mực',
+      //   price: 35,
+      //   imgURL: 'assets/images/hoctap_but.png',
+      //   description: 'Bộ bút mực tiện dụng cho học sinh và sinh viên.',
+      //   quantity: 100,
+      //   loai: 5,
+      //   status: "Còn hàng",
+      // ),
+      // Product(
+      //   id: 10,
+      //   name: 'Mì tôm Ba Miền',
+      //   price: 8,
+      //   imgURL: 'assets/images/mi_3mien.png',
+      //   description:
+      //       'Mì ăn liền với hương vị độc đáo từ 3 miền Bắc - Trung - Nam.',
+      //   quantity: 150,
+      //   loai: 3,
+      //   status: "Còn hàng",
+      // ),
+      // Product(
+      //   id: 11,
+      //   name: 'Red Bull',
+      //   price: 8,
+      //   imgURL: 'assets/images/douong_redbull.png',
+      //   description:
+      //       'Hương vị đậm đà, bổ sung năng lượng và giúp bạn luôn tỉnh táo suốt ngày dài.',
+      //   quantity: 150,
+      //   loai: 2,
+      //   status: "Còn hàng",
+      // ),
+      // Product(
+      //   id: 12,
+      //   name: 'Bộ chén sứ trắng',
+      //   price: 60,
+      //   imgURL: 'assets/images/trongnha_bochen.png',
+      //   description:
+      //       'Bộ chén cao cấp, thiết kế tinh tế, phù hợp mọi không gian bếp.',
+      //   quantity: 40,
+      //   loai: 6,
+      //   status: "Còn hàng",
+      // ),
+      // Thêm các sản phẩm mẫu khác nếu cần
+    ];
     for (final product in sampleProducts) {
       await _database.productDao.insertProduct(
         product,
@@ -76,17 +195,13 @@ class _HomeState extends State<Home> {
     }
   }
 
-  // Tải sản phẩm từ cơ sở dữ liệu
   Future<void> _loadProducts() async {
     setState(() {
       isLoading = true;
     });
-
     try {
-      List<Product> loadedProducts;
+      List<Product> loadedProducts = [];
       final categoryKey = selectCategory["key"] as int;
-
-      // Lọc sản phẩm theo danh mục
       if (categoryKey == 0) {
         loadedProducts = await _database.productDao.getAllProducts();
       } else {
@@ -94,18 +209,17 @@ class _HomeState extends State<Home> {
           categoryKey,
         );
       }
-
       setState(() {
-        products = loadedProducts; // Cập nhật danh sách sản phẩm
+        products = loadedProducts;
+        isLoading = false;
       });
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Lỗi khi tải sản phẩm: $e')));
-    } finally {
       setState(() {
         isLoading = false;
       });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi khi tải sản phẩm: $e')));
     }
   }
 
@@ -215,6 +329,30 @@ class _HomeState extends State<Home> {
                         childAspectRatio: 2 / 3.3,
                         crossAxisSpacing: 10,
                         mainAxisSpacing: 10,
+              child:
+                  isLoading
+                      ? const Center(
+                        child: CircularProgressIndicator(),
+                      ) // Hiển thị khi đang tải dữ liệu
+                      : GridView.builder(
+                        itemCount: filteredProducts.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              childAspectRatio: 2 / 3.3,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
+                            ),
+                        itemBuilder: (context, index) {
+                          final product = filteredProducts[index];
+                          return ProductCard(
+                            product: product,
+                            onFavorite: _toggleFavorite, // Truyền hàm yêu thích
+                            isFavorite: favoriteProducts.contains(product),
+                            onAddToCart:
+                                _addToCart, // Truyền hàm thêm vào giỏ hàng
+                          );
+                        },
                       ),
                       itemBuilder: (context, index) {
                         final product = filteredProducts[index];
@@ -282,29 +420,32 @@ class ProductCard extends StatelessWidget {
         children: [
           Stack(
             children: [
-              ClipRRect(
+              InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ProductDetail(product: product),
+                    ),
+                  );
+                },
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(12),
                   topRight: Radius.circular(12),
                 ),
-                child: Image.asset(
-                  product.imgURL,
-                  fit: BoxFit.cover,
-                  height: 100,
-                  width: double.infinity,
-                  errorBuilder:
-                      (context, error, stackTrace) =>
-                          const Icon(Icons.broken_image, size: 50),
-                ),
-              ),
-              Positioned(
-                top: 6,
-                right: 6,
-                child: InkWell(
-                  onTap: () => onFavorite(product),
-                  child: Icon(
-                    isFavorite ? Icons.favorite : Icons.favorite_border,
-                    color: isFavorite ? Colors.red : Colors.grey,
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    topRight: Radius.circular(12),
+                  ),
+                  child: Image.asset(
+                    product.imgURL,
+                    fit: BoxFit.cover,
+                    height: 100,
+                    width: double.infinity,
+                    errorBuilder:
+                        (context, error, stackTrace) =>
+                            const Icon(Icons.broken_image, size: 50),
                   ),
                 ),
               ),
@@ -319,7 +460,7 @@ class ProductCard extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Text('${product.price} VND'),
+            child: Text('${product.price.toStringAsFixed(3)} VND'),
           ),
           ElevatedButton(
             onPressed: () => onAddToCart(product), // Gọi hàm _addToCart

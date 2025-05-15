@@ -1,7 +1,11 @@
 import 'dart:async';
 import 'package:floor/floor.dart';
+
 import 'package:grocery_app/dao/order_dao.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
+import 'package:grocery_app/models/PurchaseHistory.dart';
+import 'package:sqflite/sqflite.dart' as sqflite;
+import 'date_time_converter.dart';
 import 'package:grocery_app/models/product.dart';
 import 'package:grocery_app/models/user.dart';
 import 'package:grocery_app/models/order.dart';
@@ -12,15 +16,20 @@ import 'package:grocery_app/dao/user_dao.dart';
 import 'package:grocery_app/dao/order_dao.dart';
 import 'package:grocery_app/dao/order_item_dao.dart';
 import 'package:grocery_app/dao/wishlist_dao.dart';
+import 'package:grocery_app/dao/purchasehistory_dao.dart';
 
 part 'app_database.g.dart';
 
-@Database(version: 1, entities: [Product, User, Order, OrderItem, Wishlist])
+@TypeConverters([DateTimeConverter])
+@Database(version: 1, entities: [Product, User, Order, OrderItem, Wishlist,PurchaseHistory])
 abstract class AppDatabase extends FloorDatabase {
   ProductDao get productDao;
   UserDao get userDao;
   OrderDao get orderDao;
   OrderItemDao get orderItemDao;  // Đảm bảo có DAO cho OrderItem
   WishlistDao get wishlistDao;    // Đảm bảo có DAO cho Wishlist
+  OrderItemDao get orderItemDao;
+  WishlistDao get wishlistDao;
+  PurchaseHistoryDao get purchaseHistoryDao;
 }
 
