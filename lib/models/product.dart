@@ -8,6 +8,9 @@ class Product {
   final int? id;
   final String name;
   final double price;
+  final String imgURL; 
+  final int quantity;
+
   final String imgURL;
   int quantity;
   final String description;
@@ -32,4 +35,16 @@ class Product {
   String toString() {
     return 'Product{id: $id, name: $name, price: $price, imgURL: $imgURL, quantity: $quantity, description: $description , status , $status}';
   }
+  Product copyWith({int? quantity}) {
+  return Product(
+    id: id,
+    name: name,
+    price: price,
+    imgURL: imgURL,
+    quantity: quantity ?? this.quantity,
+    description: description,
+    loai: loai,
+  );
+}
+
 }

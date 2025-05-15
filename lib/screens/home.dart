@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:grocery_app/models/product.dart'; // Import mô hình sản phẩm
+import 'package:grocery_app/models/product.dart';
 import 'package:grocery_app/screens/favourite_screen.dart';
 import 'package:grocery_app/database/app_database.dart';
 import 'package:grocery_app/screens/product_detail_screen.dart';
@@ -77,6 +77,7 @@ class _HomeState extends State<Home> {
         status: "Còn hàng",
         lastUpdated: DateTime(1),
       ),
+
       // Product(
       //   id: 3,
       //   name: 'Bộ dụng cụ tô màu cho bé',
@@ -251,11 +252,7 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     final filteredProducts =
-        products
-            .where(
-              (p) => p.name.toLowerCase().contains(searchQuery.toLowerCase()),
-            ) // Lọc sản phẩm theo tên
-            .toList();
+        products.where((p) => p.name.toLowerCase().contains(searchQuery.toLowerCase())).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -287,9 +284,7 @@ class _HomeState extends State<Home> {
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(
-          horizontal:
-              MediaQuery.of(context).size.width *
-              0.03, // Căn lề theo chiều ngang
+          horizontal: MediaQuery.of(context).size.width * 0.03, // Căn lề theo chiều ngang
         ),
         child: Column(
           children: [
@@ -312,18 +307,26 @@ class _HomeState extends State<Home> {
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children:
-                    categories.map((category) {
-                      return _buildCategoryButton(
-                        category,
-                        category['key'] ==
-                            selectCategory['key'], // Kiểm tra xem danh mục có được chọn không
-                      );
-                    }).toList(),
+                children: categories.map((category) {
+                  return _buildCategoryButton(
+                    category,
+                    category['key'] == selectCategory['key'], // Kiểm tra xem danh mục có được chọn không
+                  );
+                }).toList(),
               ),
             ),
             // Danh sách sản phẩm
             Expanded(
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator()) // Hiển thị khi đang tải dữ liệu
+                  : GridView.builder(
+                      padding: const EdgeInsets.all(8),
+                      itemCount: filteredProducts.length,
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 2 / 3.3,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
               child:
                   isLoading
                       ? const Center(
@@ -349,6 +352,16 @@ class _HomeState extends State<Home> {
                           );
                         },
                       ),
+                      itemBuilder: (context, index) {
+                        final product = filteredProducts[index];
+                        return ProductCard(
+                          product: product,
+                          onFavorite: _toggleFavorite, // Truyền hàm yêu thích
+                          isFavorite: favoriteProducts.contains(product),
+                          onAddToCart: _addToCart, // Truyền hàm thêm vào giỏ hàng
+                        );
+                      },
+                    ),
             ),
           ],
         ),
