@@ -90,12 +90,11 @@ class _AccountScreenState extends State<AccountScreen> {
                     });
                   }),
                   _buildListTile(Icons.delivery_dining, 'Delivery Access'),
-                  _buildListTile(Icons.payment, 'Payment Methods',(){
-                     Navigator.push(
+                  _buildListTile(Icons.payment, 'Payment Methods', () {
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder:
-                            (context) => PurchaseHistoryPage(),
+                        builder: (context) => PurchaseHistoryPage(),
                       ),
                     );
                   }),
