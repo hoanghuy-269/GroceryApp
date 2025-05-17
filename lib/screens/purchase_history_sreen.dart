@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:grocery_app/database/app_database.dart';
 import 'package:grocery_app/models/purchaseHistory.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:grocery_app/database/database_provider.dart';
 
 class PurchaseHistoryPage extends StatefulWidget {
   const PurchaseHistoryPage({Key? key}) : super(key: key);
@@ -26,8 +27,7 @@ class _PurchaseHistoryPageState extends State<PurchaseHistoryPage> {
   Future<void> _initDatabaseAndLoadData() async {
     try {
       // Khởi tạo database
-      _database =
-          await $FloorAppDatabase.databaseBuilder('app_database.db').build();
+      _database = await DatabaseProvider.database;
 
       // Lấy email đã lưu
       final prefs = await SharedPreferences.getInstance();

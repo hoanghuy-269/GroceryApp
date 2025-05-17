@@ -3,6 +3,7 @@ import 'package:floor/floor.dart';
 import 'package:grocery_app/models/purchaseHistory.dart';
 import 'package:grocery_app/dao/purchasehistory_dao.dart';
 import 'package:grocery_app/database/app_database.dart';
+import 'package:grocery_app/database/database_provider.dart';
 
 class OrderManagementScreen extends StatefulWidget {
   const OrderManagementScreen({Key? key}) : super(key: key);
@@ -32,8 +33,8 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
   }
 
   Future<void> _initDatabase() async {
-    _database =
-        await $FloorAppDatabase.databaseBuilder('app_database.db').build();
+    _database = await DatabaseProvider.database;
+
     _purchaseHistoryDao = _database.purchaseHistoryDao;
     _loadOrders();
   }

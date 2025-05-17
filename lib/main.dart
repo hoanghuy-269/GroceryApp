@@ -14,14 +14,13 @@ import 'package:grocery_app/screens/print.dart';
 import 'package:grocery_app/screens/account_screen.dart';
 import 'package:grocery_app/screens/login_screen.dart';
 import 'package:grocery_app/screens/home.dart';
+import 'package:grocery_app/database/database_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Khởi tạo cơ sở dữ liệu Floor
-  final database =
-      await $FloorAppDatabase.databaseBuilder('app_database.db').build();
-
+  final database = await DatabaseProvider.database;
   runApp(MyApp(database: database));
 }
 

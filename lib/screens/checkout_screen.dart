@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:grocery_app/database/app_database.dart';
 import 'package:grocery_app/models/product.dart';
 import 'package:grocery_app/models/purchaseHistory.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'success_screen.dart';
+import 'package:grocery_app/database/database_provider.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final Product product;
@@ -18,27 +20,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   int _quantity = 1;
   late AppDatabase _database;
   Product? _product;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _khoiTaoCSDL();
+    _initDatabaseAndLoadProduct();
   }
 
-  Future<void> _khoiTaoCSDL() async {
-    _database =
-        await $FloorAppDatabase.databaseBuilder('app_database.db').build();
+  Future<void> _initDatabaseAndLoadProduct() async {
+    _database = await DatabaseProvider.database;
     await _loadProduct();
   }
 
   Future<void> _loadProduct() async {
     final productDao = _database.productDao;
     final productFromDB = await productDao.findProductByID(widget.product.id!);
+
     if (productFromDB != null) {
       setState(() {
         _product = productFromDB;
+        _isLoading = false;
       });
     } else {
+      setState(() => _isLoading = false);
       _showDialog('Lỗi', 'Không tìm thấy sản phẩm.');
     }
   }
@@ -49,12 +54,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
-    if (_product!.quantity < _quantity) {
+    if (_quantity > _product!.quantity) {
       _showDialog('Hết hàng', 'Không đủ số lượng trong kho.');
       return;
     }
 
-    // Lấy email từ SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     String? userEmail = prefs.getString('user_email');
 
@@ -63,31 +67,29 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
-    // Tính tổng tiền
     final totalPrice = _product!.price * _quantity;
 
-    // Tạo bản ghi lịch sử mua hàng
     final purchaseHistory = PurchaseHistory(
       email: userEmail.trim(),
       product: _product!.name,
       quantity: _quantity,
       total: totalPrice,
-      date: DateTime.now().toString(),
+      date: DateTime.now().toIso8601String(),
     );
 
-    // Lưu lịch sử mua hàng
     final purchaseHistoryDao = _database.purchaseHistoryDao;
     await purchaseHistoryDao.insertHistory(purchaseHistory);
 
     // Cập nhật số lượng sản phẩm
     _product!.quantity -= _quantity;
-    final productDao = _database.productDao;
     if (_product!.quantity == 0) {
       _product!.status = 'Hết hàng';
     }
+
+    final productDao = _database.productDao;
     await productDao.updateProduct(_product!);
 
-    // Điều hướng đến SuccessScreen
+    if (!mounted) return;
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const SuccessScreen()),
@@ -118,7 +120,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child:
-            _product == null
+            _isLoading
                 ? const Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -129,6 +131,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ],
                   ),
                 )
+                : _product == null
+                ? Center(child: Text('Không tìm thấy sản phẩm.'))
                 : ListView(
                   children: [
                     Card(
@@ -136,22 +140,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       child: Padding(
                         padding: const EdgeInsets.all(12),
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Ảnh sản phẩm co giãn nhẹ, không cứng
                             ClipRRect(
                               borderRadius: BorderRadius.circular(8),
-                              child: Image.asset(
-                                widget.product.imgURL,
-                                width: 120,
-                                height: 120,
-                                fit: BoxFit.cover,
-                                errorBuilder:
-                                    (context, error, stackTrace) => const Icon(
-                                      Icons.broken_image,
-                                      size: 80,
-                                    ),
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 120,
+                                  maxHeight: 120,
+                                ),
+                                child: Image.file(
+                                  File(widget.product.imgURL),
+                                  fit: BoxFit.cover,
+                                  errorBuilder:
+                                      (context, error, stackTrace) =>
+                                          const Icon(
+                                            Icons.broken_image,
+                                            size: 70,
+                                          ),
+                                ),
                               ),
                             ),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: 12),
+                            // Thông tin bên phải
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,20 +181,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                     style: const TextStyle(fontSize: 16),
                                   ),
                                   const SizedBox(height: 8),
-                                  Row(
+                                  // Dòng số lượng
+                                  Wrap(
+                                    crossAxisAlignment:
+                                        WrapCrossAlignment.center,
+                                    spacing: 8,
                                     children: [
                                       const Text(
-                                        'Số lượng:',
+                                        'SL:',
                                         style: TextStyle(fontSize: 16),
                                       ),
-                                      const SizedBox(width: 8),
                                       IconButton(
                                         icon: const Icon(Icons.remove),
-                                        onPressed: () {
-                                          if (_quantity > 1) {
-                                            setState(() => _quantity--);
-                                          }
-                                        },
+                                        constraints: const BoxConstraints(),
+                                        padding: EdgeInsets.zero,
+                                        onPressed:
+                                            _quantity > 1
+                                                ? () =>
+                                                    setState(() => _quantity--)
+                                                : null,
                                       ),
                                       Text(
                                         '$_quantity',
@@ -190,12 +207,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                       ),
                                       IconButton(
                                         icon: const Icon(Icons.add),
-                                        onPressed: () {
-                                          setState(() => _quantity++);
-                                        },
+                                        constraints: const BoxConstraints(),
+                                        padding: EdgeInsets.zero,
+                                        onPressed:
+                                            _quantity < _product!.quantity
+                                                ? () =>
+                                                    setState(() => _quantity++)
+                                                : null,
                                       ),
                                     ],
                                   ),
+                                  if (_quantity > _product!.quantity)
+                                    const Text(
+                                      'Số lượng vượt quá tồn kho!',
+                                      style: TextStyle(color: Colors.red),
+                                    ),
                                 ],
                               ),
                             ),
@@ -203,6 +229,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 30),
                     SizedBox(
                       width: double.infinity,

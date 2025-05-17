@@ -1,15 +1,15 @@
+import 'dart:io'; // Thêm import để dùng File
 import 'package:flutter/material.dart';
 import 'package:grocery_app/models/product.dart';
 
 class FavoriteScreen extends StatefulWidget {
-  final List<Product> favoriteItems; // Nhận dữ liệu là List<Product>
-  final Function(Product)
-  onRemoveFavorite; // Callback để xóa sản phẩm khỏi danh sách yêu thích
+  final List<Product> favoriteItems;
+  final Function(Product) onRemoveFavorite;
 
   const FavoriteScreen({
     super.key,
     required this.favoriteItems,
-    required this.onRemoveFavorite, // Truyền hàm xóa vào
+    required this.onRemoveFavorite,
   });
 
   @override
@@ -67,12 +67,18 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       child: ListTile(
-        leading: Image.asset(
-          product.imgURL,
-          width: 50,
-          height: 50,
-          fit: BoxFit.cover,
-        ),
+        leading:
+            product.imgURL.isNotEmpty
+                ? Image.file(
+                  File(product.imgURL),
+                  width: 50,
+                  height: 50,
+                  fit: BoxFit.cover,
+                  errorBuilder:
+                      (context, error, stackTrace) =>
+                          const Icon(Icons.broken_image, size: 50),
+                )
+                : const Icon(Icons.image_not_supported, size: 50),
         title: Text(product.name),
         subtitle: Text(product.description),
         trailing: IconButton(
