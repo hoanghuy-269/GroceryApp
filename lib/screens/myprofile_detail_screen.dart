@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_app/database/app_database.dart';
 import 'package:grocery_app/models/user.dart';
+import 'package:grocery_app/database/database_provider.dart';
 
 class MyDetailScreen extends StatefulWidget {
   final String email;
@@ -22,8 +23,7 @@ class _MyDetailScreenState extends State<MyDetailScreen> {
   }
 
   _loadDatabase() async {
-    _database =
-        await $FloorAppDatabase.databaseBuilder('app_database.db').build();
+    _database = await DatabaseProvider.database;
     _loadUserData();
   }
 

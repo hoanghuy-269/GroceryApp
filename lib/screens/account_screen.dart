@@ -4,6 +4,8 @@ import 'package:grocery_app/screens/login_screen.dart';
 import 'package:grocery_app/models/user.dart';
 import 'package:grocery_app/database/app_database.dart';
 import 'package:grocery_app/screens/purchase_history_sreen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:grocery_app/database/database_provider.dart';
 
 class AccountScreen extends StatefulWidget {
   final String email;
@@ -24,27 +26,34 @@ class _AccountScreenState extends State<AccountScreen> {
     _loadDatabase();
   }
 
-  _loadDatabase() async {
-    _database =
-        await $FloorAppDatabase.databaseBuilder('app_database.db').build();
-    _loadUserData();
+  Future<void> _loadDatabase() async {
+    _database = await DatabaseProvider.database;
+    await _loadUserData();
   }
 
-  _loadUserData() async {
-    User? user = await _database!.userDao.getUserByEmail(widget.email);
+  Future<void> _loadUserData() async {
+    if (_database == null) return;
+
+    User? user = await _database!.userDao.getUserByEmail(widget.email.trim());
 
     setState(() {
       _user = user;
     });
 
     if (user == null) {
-      print("No user found with email ${widget.email}");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("No user found with email ${widget.email}")),
       );
-    } else {
-      print("User phone: ${user.phone}");
     }
+  }
+
+  Future<void> _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('user_email');
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+    );
   }
 
   @override
@@ -85,7 +94,6 @@ class _AccountScreenState extends State<AccountScreen> {
                             (context) => MyDetailScreen(email: widget.email),
                       ),
                     ).then((_) {
-                      // Gọi lại _loadUserData khi quay lại từ MyDetailScreen
                       _loadUserData();
                     });
                   }),
@@ -124,12 +132,8 @@ class _AccountScreenState extends State<AccountScreen> {
                         ),
                         TextButton(
                           onPressed: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const LoginScreen(),
-                              ),
-                            );
+                            Navigator.of(context).pop();
+                            _logout();
                           },
                           child: const Text('Đăng xuất'),
                         ),

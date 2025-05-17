@@ -1,3 +1,4 @@
+import 'dart:io'; // Thêm import
 import 'package:flutter/material.dart';
 import 'package:grocery_app/models/product.dart';
 import 'package:grocery_app/screens/checkout_screen.dart';
@@ -22,9 +23,12 @@ class _ProductDetailState extends State<ProductDetail> {
   }
 
   Future<void> _loadProductFromDB() async {
-    _database = await $FloorAppDatabase.databaseBuilder('app_database.db').build();
+    _database =
+        await $FloorAppDatabase.databaseBuilder('app_database.db').build();
 
-    final productFromDB =await _database.productDao.findProductByID(widget.product.id!);
+    final productFromDB = await _database.productDao.findProductByID(
+      widget.product.id!,
+    );
 
     if (productFromDB != null) {
       setState(() {
@@ -36,9 +40,7 @@ class _ProductDetailState extends State<ProductDetail> {
   @override
   Widget build(BuildContext context) {
     if (_product == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -49,14 +51,18 @@ class _ProductDetailState extends State<ProductDetail> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
-              child: Image.asset(
-                _product!.imgURL,
-                fit: BoxFit.fill,
-                height: 200,
-                width: double.infinity,
-                errorBuilder: (context, error, stackTrace) =>
-                    const Icon(Icons.broken_image, size: 50),
-              ),
+              child:
+                  _product!.imgURL.isNotEmpty
+                      ? Image.file(
+                        File(_product!.imgURL),
+                        fit: BoxFit.fill,
+                        height: 200,
+                        width: double.infinity,
+                        errorBuilder:
+                            (context, error, stackTrace) =>
+                                const Icon(Icons.broken_image, size: 50),
+                      )
+                      : const Icon(Icons.image_not_supported, size: 50),
             ),
             const SizedBox(height: 16),
             Text(
@@ -76,7 +82,9 @@ class _ProductDetailState extends State<ProductDetail> {
             Text(_product!.description),
             const SizedBox(height: 16),
             Text(
-              _product!.quantity == 0 ? "Tình trạng: Hết hàng" : "Tồn kho: ${_product!.quantity}",
+              _product!.quantity == 0
+                  ? "Tình trạng: Hết hàng"
+                  : "Tồn kho: ${_product!.quantity}",
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -91,8 +99,9 @@ class _ProductDetailState extends State<ProductDetail> {
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            CheckoutScreen(product: widget.product),
+                        builder:
+                            (context) =>
+                                CheckoutScreen(product: widget.product),
                       ),
                     );
                     _loadProductFromDB(); // Cập nhật sau khi quay lại

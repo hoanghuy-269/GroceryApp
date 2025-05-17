@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:grocery_app/models/product.dart';
 import 'package:grocery_app/screens/favourite_screen.dart';
@@ -5,7 +7,7 @@ import 'package:grocery_app/database/app_database.dart';
 import 'package:grocery_app/screens/product_detail_screen.dart';
 
 class Home extends StatefulWidget {
-  final Function(Product) onAddToCart; // Hàm thêm vào giỏ hàng
+  final Function(Product) onAddToCart;
 
   const Home({super.key, required this.onAddToCart});
 
@@ -41,7 +43,7 @@ class _HomeState extends State<Home> {
   Future<void> _initDatabase() async {
     _database =
         await $FloorAppDatabase.databaseBuilder('app_database.db').build();
-    //await _database.productDao.deleteAllProducts();
+    // Nếu muốn thêm sản phẩm mẫu từ file path thật, sửa đường dẫn trong _addSampleProducts
     //await _addSampleProducts();
     await _loadProducts();
   }
@@ -80,111 +82,18 @@ class _HomeState extends State<Home> {
         id: 4,
         name: 'Mì tôm Hảo Hảo',
         price: 7,
-        imgURL: 'assets/images/mi_haohao.png',
+        imgURL:
+            '/storage/emulated/0/Pictures/mi_haohao.png', // VD: Đường dẫn thật file ảnh trên máy
         description: 'Mì ăn liền vị chua cay, ngon tuyệt cho mọi bữa ăn nhanh.',
         quantity: 200,
         loai: 3,
         status: "Còn hàng",
         lastUpdated: DateTime.now(),
       ),
-      Product(
-        id: 5,
-        name: 'Bột Giặt Omo',
-        price: 45,
-        imgURL: 'assets/images/trongnha_omo.png',
-        description: 'Bột giặt sạch vượt trội, đánh bay mọi vết bẩn cứng đầu.',
-        quantity: 90,
-        loai: 6,
-        status: "Còn hàng",
-        lastUpdated: DateTime.now(),
-      ),
-      Product(
-        id: 6,
-        name: 'Bánh Oreo',
-        price: 22,
-        imgURL: 'assets/images/doan_banhoreo.png',
-        description: 'Bánh quy nhân kem sữa, giòn tan, ngọt ngào.',
-        quantity: 110,
-        loai: 1,
-        status: "Còn hàng",
-        lastUpdated: DateTime.now(),
-      ),
-      Product(
-        id: 7,
-        name: 'CocaCola',
-        price: 8,
-        imgURL: 'assets/images/douong_cocacola.png',
-        description:
-            'Nước giải khát mát lạnh, sảng khoái tức thì, thích hợp cho mọi độ tuổi.',
-        quantity: 150,
-        loai: 2,
-        status: "Còn hàng",
-        lastUpdated: DateTime.now(),
-      ),
-      Product(
-        id: 8,
-        name: 'Gia Vị Bột Chiên',
-        price: 20,
-        imgURL: 'assets/images/giavi_botchien.png',
-        description:
-            'Gia vị pha sẵn giúp món bột chiên thêm hấp dẫn và đậm đà.',
-        quantity: 65,
-        loai: 3,
-        status: "Còn hàng",
-        lastUpdated: DateTime.now(),
-      ),
-      Product(
-        id: 9,
-        name: 'Hộp bút mực',
-        price: 35,
-        imgURL: 'assets/images/hoctap_but.png',
-        description: 'Bộ bút mực tiện dụng cho học sinh và sinh viên.',
-        quantity: 100,
-        loai: 5,
-        status: "Còn hàng",
-        lastUpdated: DateTime.now(),
-      ),
-      Product(
-        id: 10,
-        name: 'Mì tôm Ba Miền',
-        price: 8,
-        imgURL: 'assets/images/mi_3mien.png',
-        description:
-            'Mì ăn liền với hương vị độc đáo từ 3 miền Bắc - Trung - Nam.',
-        quantity: 150,
-        loai: 3,
-        status: "Còn hàng",
-        lastUpdated: DateTime.now(),
-      ),
-      Product(
-        id: 11,
-        name: 'Red Bull',
-        price: 8,
-        imgURL: 'assets/images/douong_redbull.png',
-        description:
-            'Hương vị đậm đà, bổ sung năng lượng và giúp bạn luôn tỉnh táo suốt ngày dài.',
-        quantity: 150,
-        loai: 2,
-        status: "Còn hàng",
-        lastUpdated: DateTime.now(),
-      ),
-      Product(
-        id: 12,
-        name: 'Bộ chén sứ trắng',
-        price: 60,
-        imgURL: 'assets/images/trongnha_bochen.png',
-        description:
-            'Bộ chén cao cấp, thiết kế tinh tế, phù hợp mọi không gian bếp.',
-        quantity: 40,
-        loai: 6,
-        status: "Còn hàng",
-        lastUpdated: DateTime.now(),
-      ),
     ];
     for (final product in sampleProducts) {
-      await _database.productDao.insertProduct(
-        product,
-      ); // Thêm từng sản phẩm vào cơ sở dữ liệu
+      await _database.productDao.insertProduct(product);
+      print('Đường dẫn ảnh: ${product.imgURL}');
     }
   }
 
@@ -376,8 +285,8 @@ class ProductCard extends StatelessWidget {
                     topLeft: Radius.circular(12),
                     topRight: Radius.circular(12),
                   ),
-                  child: Image.asset(
-                    product.imgURL,
+                  child: Image.file(
+                    File(product.imgURL),
                     fit: BoxFit.cover,
                     height: 100,
                     width: double.infinity,
@@ -387,22 +296,37 @@ class ProductCard extends StatelessWidget {
                   ),
                 ),
               ),
+              Positioned(
+                top: 6,
+                right: 6,
+                child: IconButton(
+                  icon: Icon(
+                    isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: isFavorite ? Colors.red : Colors.grey,
+                  ),
+                  onPressed: () => onFavorite(product),
+                ),
+              ),
             ],
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(
               product.name,
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Text('${product.price.toStringAsFixed(3)} VND'),
           ),
-          ElevatedButton(
-            onPressed: () => onAddToCart(product), // Gọi hàm _addToCart
-            child: const Text('Thêm vào giỏ hàng'),
+          const Spacer(),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton(
+              onPressed: () => onAddToCart(product),
+              child: const Text('Thêm vào giỏ hàng'),
+            ),
           ),
         ],
       ),
