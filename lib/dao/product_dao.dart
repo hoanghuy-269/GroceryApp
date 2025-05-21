@@ -26,4 +26,11 @@ abstract class ProductDao {
 
   @Query('SELECT * FROM Product ORDER BY lastUpdated DESC')
   Future<List<Product>> getAllProductsSortedByDate();
+
+@Query('UPDATE product SET discount = :discount WHERE loai = :loai')
+Future<void> updateDiscountForCategory(int loai, double discount);
+
+@Query('UPDATE product SET discount = NULL WHERE loai = :loai')
+Future<void> clearDiscountForCategory(int loai);
+
 }
