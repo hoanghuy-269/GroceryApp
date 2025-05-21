@@ -82,8 +82,7 @@ class _HomeState extends State<Home> {
         id: 4,
         name: 'Mì tôm Hảo Hảo',
         price: 7,
-        imgURL:
-            '/storage/emulated/0/Pictures/mi_haohao.png', // VD: Đường dẫn thật file ảnh trên máy
+        imgURL: '/storage/emulated/0/Pictures/mi_haohao.png',
         description: 'Mì ăn liền vị chua cay, ngon tuyệt cho mọi bữa ăn nhanh.',
         quantity: 200,
         loai: 3,

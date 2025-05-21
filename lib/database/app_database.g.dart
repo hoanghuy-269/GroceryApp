@@ -401,6 +401,19 @@ class _$UserDao extends UserDao {
   }
 
   @override
+  Future<User?> getUserByName(String name) async {
+    return _queryAdapter.query('SELECT * FROM User WHERE name = ?1',
+        mapper: (Map<String, Object?> row) => User(
+            row['id'] as int?,
+            row['name'] as String,
+            row['email'] as String,
+            row['phone'] as String,
+            row['password'] as String,
+            row['role'] as String),
+        arguments: [name]);
+  }
+
+  @override
   Future<void> insertUser(User user) async {
     await _userInsertionAdapter.insert(user, OnConflictStrategy.abort);
   }

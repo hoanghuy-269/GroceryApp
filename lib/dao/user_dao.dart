@@ -19,6 +19,9 @@ abstract class UserDao {
   @Query('SELECT COUNT(*) FROM User WHERE email = :email')
   Future<int?> countUsersByEmail(String email);
 
+  @Query('SELECT * FROM User WHERE name = :name')
+  Future<User?> getUserByName(String name);
+
   // Thêm người dùng
   @insert
   Future<void> insertUser(User user);
