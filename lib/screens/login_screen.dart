@@ -4,8 +4,8 @@ import 'package:grocery_app/database/app_database.dart';
 import 'package:grocery_app/models/user.dart';
 import 'package:grocery_app/screens/sign_up_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:grocery_app/database/database_provider.dart';
 import 'package:grocery_app/screens/admin_screen.dart';
-
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -14,7 +14,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
@@ -89,10 +89,57 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 40, 223, 122),
       appBar: AppBar(
         title: const Center(child: Text('Login')),
         backgroundColor: const Color.fromARGB(255, 40, 223, 122),
       ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 30),
+              const CircleAvatar(
+                radius: 50,
+                backgroundImage: AssetImage("assets/images/avata.jpg"),
+              ),
+              const SizedBox(height: 30),
+
+              // Tên đăng nhập
+              TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Full Name',
+                  prefixIcon: Icon(Icons.person),
+                  border: OutlineInputBorder(),
+                  filled: true,
+                  fillColor: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Mật khẩu
+              TextField(
+                controller: _passwordController,
+                obscureText: _obscurePassword,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  prefixIcon: const Icon(Icons.lock),
+                  border: const OutlineInputBorder(),
+                  filled: true,
+                  fillColor: Colors.white,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
       body: Container(
         padding: const EdgeInsets.all(16.0),
         decoration: const BoxDecoration(
@@ -158,6 +205,7 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 20),
             if (!_adminCreated)
               ElevatedButton(
+                onPressed: _isLoading ? null : _loginWithName,
                 onPressed: _isLoading ? null : _createAdminAccount,
                 child:
                     _isLoading
@@ -173,13 +221,21 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  Future<void> saveUserName(String name) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_name', name);
+  }
+
+  Future<void> _loginWithName() async {
+    String name = _nameController.text.trim();
+    String password = _passwordController.text.trim();
   Future<void> _user() async {
     String email = _emailController.text;
     String password = _passwordController.text;
 
-    if (email.isEmpty || password.isEmpty) {
+    if (name.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter both email and password')),
+        const SnackBar(content: Text('Please enter name and password')),
       );
       return;
     }
@@ -188,6 +244,9 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
+    final db = await DatabaseProvider.database;
+    final user = await db.userDao.getUserByName(name); // ⚠️ cần hàm này
+
     AppDatabase db =
         await $FloorAppDatabase.databaseBuilder('app_database.db').build();
     User? user = await db.userDao.getUserByEmail(email);
@@ -195,6 +254,17 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       _isLoading = false;
     });
+
+    if (user != null && user.password == password) {
+      await saveUserName(user.name);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MyBottom(userName: user.name)),
+      );
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Invalid name or password')));
 
     if (user != null && password == user.password) {
       await saveUserEmail(user.email);

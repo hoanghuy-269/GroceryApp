@@ -213,6 +213,29 @@ class _HomeState extends State<Home> {
       setState(() {
         isLoading = false;
       });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi khi tải sản phẩm: $e')));
+    }
+  }
+
+  Future<void> _addSampleProducts() async {
+    final sampleProducts = <Product>[
+      Product(
+        id: 4,
+        name: 'Mì tôm Hảo Hảo',
+        price: 7,
+        imgURL: '/storage/emulated/0/Pictures/mi_haohao.png',
+        description: 'Mì ăn liền vị chua cay, ngon tuyệt cho mọi bữa ăn nhanh.',
+        quantity: 200,
+        loai: 3,
+        status: "Còn hàng",
+        lastUpdated: DateTime.now(),
+      ),
+    ];
+    for (final product in sampleProducts) {
+      await _database.productDao.insertProduct(product);
+      print('Đường dẫn ảnh: ${product.imgURL}');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Lỗi khi tải sản phẩm: $e')),
       );
