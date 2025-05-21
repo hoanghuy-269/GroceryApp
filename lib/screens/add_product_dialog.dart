@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
@@ -16,6 +15,7 @@ Future<void> showAddProductDialog({
   final descriptionController = TextEditingController();
   final loaiController = TextEditingController();
   final statusController = TextEditingController();
+  final discountController = TextEditingController();
 
   File? pickedImageFile;
   String? savedImagePath;
@@ -116,6 +116,10 @@ Future<void> showAddProductDialog({
                   TextField(
                     controller: statusController,
                     decoration: InputDecoration(labelText: 'Trạng thái'),
+                  ),
+                   TextField(
+                    controller: discountController,
+                    decoration: InputDecoration(labelText: 'Giảm giá'),
                   ),
                 ],
               ),

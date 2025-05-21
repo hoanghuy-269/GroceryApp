@@ -16,6 +16,8 @@ import 'package:grocery_app/screens/login_screen.dart';
 import 'package:grocery_app/screens/home.dart';
 import 'package:grocery_app/database/database_provider.dart';
 
+import 'package:grocery_app/screens/Customer.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -34,10 +36,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Grocery App',
-      theme: ThemeData(
+      theme: ThemeData( 
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const LoginScreen(),
+      home: CustomerScreen(), 
     );
   }
 }

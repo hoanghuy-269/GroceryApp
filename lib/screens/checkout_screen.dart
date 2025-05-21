@@ -59,15 +59,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    String? userEmail = prefs.getString('user_email');
+    final email = await SharedPreferences.getInstance();
+    String? userEmail = email.getString('user_email');
 
     if (userEmail == null || userEmail.isEmpty) {
       _showDialog('Lỗi', 'Vui lòng đăng nhập để tiếp tục.');
       return;
     }
 
-    final totalPrice = _product!.price * _quantity;
+    // Tính tổng giá dựa trên giá đã giảm (nếu có)
+    final totalPrice = _product!.discount! > 0
+        ? _product!.price * (1 - _product!.discount! / 100) * _quantity
+        : _product!.price * _quantity;
 
     final purchaseHistory = PurchaseHistory(
       email: userEmail.trim(),
@@ -99,17 +102,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void _showDialog(String title, String message) {
     showDialog(
       context: context,
-      builder:
-          (_) => AlertDialog(
-            title: Text(title),
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
           ),
+        ],
+      ),
     );
   }
 
@@ -119,133 +121,125 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       appBar: AppBar(title: const Text('Thanh toán')),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child:
-            _isLoading
-                ? const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 20),
-                      Text('Đang tải sản phẩm...'),
-                    ],
-                  ),
-                )
-                : _product == null
-                ? Center(child: Text('Không tìm thấy sản phẩm.'))
-                : ListView(
+        child: _isLoading
+            ? const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Card(
-                      elevation: 4,
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Ảnh sản phẩm co giãn nhẹ, không cứng
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  maxWidth: 120,
-                                  maxHeight: 120,
-                                ),
-                                child: Image.file(
-                                  File(widget.product.imgURL),
-                                  fit: BoxFit.cover,
-                                  errorBuilder:
-                                      (context, error, stackTrace) =>
-                                          const Icon(
-                                            Icons.broken_image,
-                                            size: 70,
-                                          ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            // Thông tin bên phải
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _product!.name,
-                                    style: const TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Giá: ${_product!.price.toStringAsFixed(3)} VNĐ',
-                                    style: const TextStyle(fontSize: 16),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  // Dòng số lượng
-                                  Wrap(
-                                    crossAxisAlignment:
-                                        WrapCrossAlignment.center,
-                                    spacing: 8,
-                                    children: [
-                                      const Text(
-                                        'SL:',
-                                        style: TextStyle(fontSize: 16),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.remove),
-                                        constraints: const BoxConstraints(),
-                                        padding: EdgeInsets.zero,
-                                        onPressed:
-                                            _quantity > 1
-                                                ? () =>
-                                                    setState(() => _quantity--)
-                                                : null,
-                                      ),
-                                      Text(
-                                        '$_quantity',
-                                        style: const TextStyle(fontSize: 18),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.add),
-                                        constraints: const BoxConstraints(),
-                                        padding: EdgeInsets.zero,
-                                        onPressed:
-                                            _quantity < _product!.quantity
-                                                ? () =>
-                                                    setState(() => _quantity++)
-                                                : null,
-                                      ),
-                                    ],
-                                  ),
-                                  if (_quantity > _product!.quantity)
-                                    const Text(
-                                      'Số lượng vượt quá tồn kho!',
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 30),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _checkout,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                        child: const Text(
-                          'Thanh Toán',
-                          style: TextStyle(fontSize: 18),
-                        ),
-                      ),
-                    ),
+                    CircularProgressIndicator(),
+                    SizedBox(height: 20),
+                    Text('Đang tải sản phẩm...'),
                   ],
                 ),
+              )
+            : _product == null
+                ? const Center(child: Text('Không tìm thấy sản phẩm.'))
+                : ListView(
+                    children: [
+                      Card(
+                        elevation: 4,
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: 120,
+                                    maxHeight: 120,
+                                  ),
+                                  child: Image.file(
+                                    File(widget.product.imgURL),
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        const Icon(
+                                      Icons.broken_image,
+                                      size: 70,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _product!.name,
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      _product!.discount! > 0
+                                          ? 'Giá: ${(_product!.price * (1 - _product!.discount! / 100)).toStringAsFixed(3)} VNĐ (Giảm ${_product!.discount}%)'
+                                          : 'Giá: ${_product!.price.toStringAsFixed(3)} VNĐ',
+                                      style: const TextStyle(fontSize: 16),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Wrap(
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.center,
+                                      spacing: 8,
+                                      children: [
+                                        const Text(
+                                          'SL:',
+                                          style: TextStyle(fontSize: 16),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.remove),
+                                          constraints: const BoxConstraints(),
+                                          padding: EdgeInsets.zero,
+                                          onPressed: _quantity > 1
+                                              ? () => setState(() => _quantity--)
+                                              : null,
+                                        ),
+                                        Text(
+                                          '$_quantity',
+                                          style: const TextStyle(fontSize: 18),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.add),
+                                          constraints: const BoxConstraints(),
+                                          padding: EdgeInsets.zero,
+                                          onPressed: _quantity < _product!.quantity
+                                              ? () => setState(() => _quantity++)
+                                              : null,
+                                        ),
+                                      ],
+                                    ),
+                                    if (_quantity > _product!.quantity)
+                                      const Text(
+                                        'Số lượng vượt quá tồn kho!',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _checkout,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: const Text(
+                            'Thanh Toán',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
       ),
     );
   }
