@@ -11,4 +11,7 @@ abstract class OrderDao {
 
   @delete
   Future<void> deleteOrder(Order order);
+
+  @Query('SELECT * FROM Order WHERE id = :orderId')
+  Future<Order?> getOrderByOrderID(int orderId);
 }
