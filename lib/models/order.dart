@@ -1,17 +1,11 @@
 import 'package:floor/floor.dart';
 
-@Entity(tableName: 'Order')
+@Entity(tableName: 'orders')
 class Order {
   @PrimaryKey(autoGenerate: true)
   final int? id;
+  final DateTime orderDate;
+  final double totalAmount;
 
-  final int date;
-
-  Order({this.id, required this.date});
-
-  factory Order.fromDateTime(DateTime dateTime) {
-    return Order(date: dateTime.millisecondsSinceEpoch);
-  }
-
-  DateTime get dateTime => DateTime.fromMillisecondsSinceEpoch(date);
+  Order({this.id, required this.orderDate, required this.totalAmount});
 }

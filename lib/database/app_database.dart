@@ -12,18 +12,30 @@ import 'package:grocery_app/models/order_item.dart';
 import 'package:grocery_app/models/wishlist.dart';
 import 'package:grocery_app/dao/product_dao.dart';
 import 'package:grocery_app/dao/user_dao.dart';
+import 'package:grocery_app/dao/cart_dao.dart';
 import 'package:grocery_app/dao/order_item_dao.dart';
 import 'package:grocery_app/dao/wishlist_dao.dart';
 import 'package:grocery_app/dao/purchasehistory_dao.dart';
 import 'package:grocery_app/models/notification.dart';
 import 'package:grocery_app/dao/notification_dao.dart';
 import 'package:grocery_app/models/Customer.dart';
+import 'package:grocery_app/models/cart.dart';
 part 'app_database.g.dart';
 
 @TypeConverters([DateTimeConverter])
 @Database(
   version: 1,
-  entities: [Product, User, Order, OrderItem, Wishlist, PurchaseHistory,Notifications,Customer],
+  entities: [
+    Product,
+    User,
+    Order,
+    OrderItem,
+    Wishlist,
+    PurchaseHistory,
+    Notifications,
+    Customer,
+    CartItem,
+  ],
 )
 abstract class AppDatabase extends FloorDatabase {
   ProductDao get productDao;
@@ -33,7 +45,6 @@ abstract class AppDatabase extends FloorDatabase {
   WishlistDao get wishlistDao;
   PurchaseHistoryDao get purchaseHistoryDao;
   NotificationDao get notificationDao;
-  CustomerDao get customerDao ;
-  
-
+  CustomerDao get customerDao;
+  CartItemDao get cartItemDao;
 }

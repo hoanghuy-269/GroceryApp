@@ -15,7 +15,7 @@ class Product {
   String status;
   @TypeConverters([DateTimeConverter])
   final DateTime lastUpdated;
-  final double? discount ;
+  final double? discount;
 
   Product({
     required this.id,
@@ -27,8 +27,7 @@ class Product {
     required this.status,
     required this.imgURL,
     required this.lastUpdated,
-    this.discount
-  
+    this.discount,
   });
   Product copyWith({int? quantity, String? status, DateTime? lastUpdated}) {
     return Product(
