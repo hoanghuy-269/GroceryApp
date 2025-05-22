@@ -104,7 +104,6 @@ class _CartScreenState extends State<CartScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const deliveryFee = 25.0;
     const discount = 0.0;
 
     final subTotal = _cartItems.fold(
@@ -112,7 +111,7 @@ class _CartScreenState extends State<CartScreen> {
       (total, item) => total + item.price * item.quantity,
     );
 
-    final totalCost = subTotal + deliveryFee - discount;
+    final totalCost = subTotal - discount;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Giỏ Hàng')),
@@ -184,7 +183,6 @@ class _CartScreenState extends State<CartScreen> {
                 ),
             const Divider(),
             _buildPriceRow('Sub-Total:', subTotal),
-            _buildPriceRow('Delivery Fee:', deliveryFee),
             const Divider(),
             _buildPriceRow('Total Cost:', totalCost, isTotal: true),
             const SizedBox(height: 20),

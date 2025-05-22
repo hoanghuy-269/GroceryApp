@@ -19,13 +19,7 @@ class InvoiceScreen extends StatefulWidget {
 
 class _InvoiceScreenState extends State<InvoiceScreen> {
   late AppDatabase _database;
-  final DateTime orderTime = DateTime(
-    2025,
-    5,
-    21,
-    23,
-    57,
-  ); // 11:57 PM, 21/05/2025
+  final DateTime orderTime = DateTime.now();
 
   @override
   void initState() {
@@ -56,6 +50,12 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
 
       // Chèn đơn hàng và nhận ID
       final orderId = await _database.orderDao.insertOrder(order);
+
+      // In ra thông tin đơn hàng vào console
+      print('Đơn hàng đã được tạo:');
+      print('ID: $orderId');
+      print('Ngày: ${order.orderDate}');
+      print('Tổng cộng: ${formatCurrency(total)}');
 
       final orderItems =
           widget.products.map((cartItem) {
@@ -94,6 +94,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
         context,
         MaterialPageRoute(builder: (_) => const MyBottom(userName: "")),
       );
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Đơn hàng đã được hoàn thành!')),
       );

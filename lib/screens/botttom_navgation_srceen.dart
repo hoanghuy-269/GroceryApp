@@ -7,6 +7,7 @@ import 'package:grocery_app/screens/cart_screen.dart';
 import 'package:grocery_app/screens/order_stats_screen.dart';
 import 'package:grocery_app/screens/product_manager_screen.dart';
 import 'package:grocery_app/models/product.dart';
+import 'package:grocery_app/database/database_provider.dart';
 
 class MyBottom extends StatefulWidget {
   final String userName;
@@ -32,7 +33,7 @@ class _MyBottomState extends State<MyBottom> {
       () => Home(onAddToCart: _addToCart),
       () => CartScreen(cartItems: cartProducts),
       () => ProductManagementScreen(),
-      //() => OrderStatsScreen(),
+      () => RevenueStatisticsScreen(),
     ];
 
     // Chạy các tác vụ bất đồng bộ sau khi widget được gắn
@@ -47,8 +48,7 @@ class _MyBottomState extends State<MyBottom> {
   }
 
   Future<void> _initDatabase() async {
-    _database =
-        await $FloorAppDatabase.databaseBuilder('app_database.db').build();
+    _database = await DatabaseProvider.database;
   }
 
   Future<void> _loadCartProducts() async {

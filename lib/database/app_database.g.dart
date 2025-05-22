@@ -568,6 +568,16 @@ class _$OrderDao extends OrderDao {
   }
 
   @override
+  Future<Order?> getOrderByOrderID(int orderId) async {
+    return _queryAdapter.query('SELECT * FROM Order WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => Order(
+            id: row['id'] as int?,
+            orderDate: _dateTimeConverter.decode(row['orderDate'] as int),
+            totalAmount: row['totalAmount'] as double),
+        arguments: [orderId]);
+  }
+
+  @override
   Future<int> insertOrder(Order order) {
     return _orderInsertionAdapter.insertAndReturnId(
         order, OnConflictStrategy.replace);
@@ -620,7 +630,7 @@ class _$OrderItemDao extends OrderItemDao {
 
   @override
   Future<List<OrderItem>> getAllOrderItems() async {
-    return _queryAdapter.queryList('SELECT * FROM OrderItem',
+    return _queryAdapter.queryList('SELECT * FROM order_items',
         mapper: (Map<String, Object?> row) => OrderItem(
             id: row['id'] as int?,
             orderId: row['orderId'] as int,
@@ -628,6 +638,20 @@ class _$OrderItemDao extends OrderItemDao {
             quantity: row['quantity'] as int,
             price: row['price'] as double,
             discount: row['discount'] as double?));
+  }
+
+  @override
+  Future<List<OrderItem>> getOrderItemsByOrderId(int orderId) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM order_items WHERE orderId = ?1',
+        mapper: (Map<String, Object?> row) => OrderItem(
+            id: row['id'] as int?,
+            orderId: row['orderId'] as int,
+            productId: row['productId'] as int,
+            quantity: row['quantity'] as int,
+            price: row['price'] as double,
+            discount: row['discount'] as double?),
+        arguments: [orderId]);
   }
 
   @override
