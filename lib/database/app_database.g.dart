@@ -88,6 +88,8 @@ class _$AppDatabase extends AppDatabase {
 
   CustomerDao? _customerDaoInstance;
 
+  CartItemDao? _cartItemDaoInstance;
+
   Future<sqflite.Database> open(
     String path,
     List<Migration> migrations, [
@@ -114,17 +116,19 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `User` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL, `email` TEXT NOT NULL, `phone` TEXT NOT NULL, `password` TEXT NOT NULL, `role` TEXT NOT NULL)');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Order` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `date` INTEGER NOT NULL)');
+            'CREATE TABLE IF NOT EXISTS `orders` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `orderDate` INTEGER NOT NULL, `totalAmount` REAL NOT NULL)');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `OrderItem` (`id` INTEGER NOT NULL, `orderId` INTEGER NOT NULL, `productId` INTEGER NOT NULL, `quantity` INTEGER NOT NULL, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `order_items` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `orderId` INTEGER NOT NULL, `productId` INTEGER NOT NULL, `quantity` INTEGER NOT NULL, `price` REAL NOT NULL, `discount` REAL)');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Wishlist` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `userId` INTEGER NOT NULL, `productId` INTEGER NOT NULL)');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `purchase_history` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `email` TEXT NOT NULL, `product` TEXT NOT NULL, `quantity` INTEGER NOT NULL, `total` REAL NOT NULL, `date` TEXT NOT NULL, `status` TEXT NOT NULL)');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Notifications` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `message` TEXT NOT NULL, `timestamp` TEXT NOT NULL, `type` TEXT NOT NULL, `discount` REAL, `endDate` TEXT, `key` INTEGER)');
+            'CREATE TABLE IF NOT EXISTS `Notifications` (`id` INTEGER NOT NULL, `title` TEXT NOT NULL, `message` TEXT NOT NULL, `timestamp` TEXT NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `customers` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `phone` TEXT NOT NULL, `points` INTEGER NOT NULL)');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `cart_items` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `productId` INTEGER NOT NULL, `productName` TEXT NOT NULL, `price` REAL NOT NULL, `imgURL` TEXT NOT NULL, `quantity` INTEGER NOT NULL, `discount` REAL)');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -172,6 +176,11 @@ class _$AppDatabase extends AppDatabase {
   @override
   CustomerDao get customerDao {
     return _customerDaoInstance ??= _$CustomerDao(database, changeListener);
+  }
+
+  @override
+  CartItemDao get cartItemDao {
+    return _cartItemDaoInstance ??= _$CartItemDao(database, changeListener);
   }
 }
 
@@ -263,7 +272,7 @@ class _$ProductDao extends ProductDao {
 
   @override
   Future<List<Product>> getProductByCategory(int categoryKey) async {
-    return _queryAdapter.queryList('SELECT * FROM Product Where loai = ?1',
+    return _queryAdapter.queryList('SELECT * FROM Product WHERE loai = ?1',
         mapper: (Map<String, Object?> row) => Product(
             id: row['id'] as int?,
             name: row['name'] as String,
@@ -280,7 +289,7 @@ class _$ProductDao extends ProductDao {
 
   @override
   Future<Product?> findProductByID(int id) async {
-    return _queryAdapter.query('SELECT * FROM Product Where id = ?1',
+    return _queryAdapter.query('SELECT * FROM Product WHERE id = ?1',
         mapper: (Map<String, Object?> row) => Product(
             id: row['id'] as int?,
             name: row['name'] as String,
@@ -318,15 +327,59 @@ class _$ProductDao extends ProductDao {
     double discount,
   ) async {
     await _queryAdapter.queryNoReturn(
-        'UPDATE product SET discount = ?2 WHERE loai = ?1',
+        'UPDATE Product SET discount = ?2 WHERE loai = ?1',
         arguments: [loai, discount]);
   }
 
   @override
   Future<void> clearDiscountForCategory(int loai) async {
     await _queryAdapter.queryNoReturn(
-        'UPDATE product SET discount = NULL WHERE loai = ?1',
+        'UPDATE Product SET discount = NULL WHERE loai = ?1',
         arguments: [loai]);
+  }
+
+  @override
+  Future<List<Product>> getProductsWithLowStock(int threshold) async {
+    return _queryAdapter.queryList('SELECT * FROM Product WHERE quantity < ?1',
+        mapper: (Map<String, Object?> row) => Product(
+            id: row['id'] as int?,
+            name: row['name'] as String,
+            price: row['price'] as double,
+            quantity: row['quantity'] as int,
+            description: row['description'] as String,
+            loai: row['loai'] as int,
+            status: row['status'] as String,
+            imgURL: row['imgURL'] as String,
+            lastUpdated: _dateTimeConverter.decode(row['lastUpdated'] as int),
+            discount: row['discount'] as double?),
+        arguments: [threshold]);
+  }
+
+  @override
+  Future<Product?> findProductById(int id) async {
+    return _queryAdapter.query('SELECT * FROM Product WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => Product(
+            id: row['id'] as int?,
+            name: row['name'] as String,
+            price: row['price'] as double,
+            quantity: row['quantity'] as int,
+            description: row['description'] as String,
+            loai: row['loai'] as int,
+            status: row['status'] as String,
+            imgURL: row['imgURL'] as String,
+            lastUpdated: _dateTimeConverter.decode(row['lastUpdated'] as int),
+            discount: row['discount'] as double?),
+        arguments: [id]);
+  }
+
+  @override
+  Future<void> updateQuantity(
+    int productId,
+    int newQuantity,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE Product SET quantity = ?2 WHERE id = ?1',
+        arguments: [productId, newQuantity]);
   }
 
   @override
@@ -444,6 +497,19 @@ class _$UserDao extends UserDao {
   }
 
   @override
+  Future<User?> getUserByName(String name) async {
+    return _queryAdapter.query('SELECT * FROM User WHERE name = ?1',
+        mapper: (Map<String, Object?> row) => User(
+            row['id'] as int?,
+            row['name'] as String,
+            row['email'] as String,
+            row['phone'] as String,
+            row['password'] as String,
+            row['role'] as String),
+        arguments: [name]);
+  }
+
+  @override
   Future<void> insertUser(User user) async {
     await _userInsertionAdapter.insert(user, OnConflictStrategy.abort);
   }
@@ -466,15 +532,21 @@ class _$OrderDao extends OrderDao {
   )   : _queryAdapter = QueryAdapter(database),
         _orderInsertionAdapter = InsertionAdapter(
             database,
-            'Order',
-            (Order item) =>
-                <String, Object?>{'id': item.id, 'date': item.date}),
+            'orders',
+            (Order item) => <String, Object?>{
+                  'id': item.id,
+                  'orderDate': _dateTimeConverter.encode(item.orderDate),
+                  'totalAmount': item.totalAmount
+                }),
         _orderDeletionAdapter = DeletionAdapter(
             database,
-            'Order',
+            'orders',
             ['id'],
-            (Order item) =>
-                <String, Object?>{'id': item.id, 'date': item.date});
+            (Order item) => <String, Object?>{
+                  'id': item.id,
+                  'orderDate': _dateTimeConverter.encode(item.orderDate),
+                  'totalAmount': item.totalAmount
+                });
 
   final sqflite.DatabaseExecutor database;
 
@@ -488,14 +560,27 @@ class _$OrderDao extends OrderDao {
 
   @override
   Future<List<Order>> getAllOrders() async {
-    return _queryAdapter.queryList('SELECT * FROM Order',
-        mapper: (Map<String, Object?> row) =>
-            Order(id: row['id'] as int?, date: row['date'] as int));
+    return _queryAdapter.queryList('SELECT * FROM orders',
+        mapper: (Map<String, Object?> row) => Order(
+            id: row['id'] as int?,
+            orderDate: _dateTimeConverter.decode(row['orderDate'] as int),
+            totalAmount: row['totalAmount'] as double));
   }
 
   @override
-  Future<void> insertOrder(Order order) async {
-    await _orderInsertionAdapter.insert(order, OnConflictStrategy.abort);
+  Future<Order?> getOrderByOrderID(int orderId) async {
+    return _queryAdapter.query('SELECT * FROM Order WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => Order(
+            id: row['id'] as int?,
+            orderDate: _dateTimeConverter.decode(row['orderDate'] as int),
+            totalAmount: row['totalAmount'] as double),
+        arguments: [orderId]);
+  }
+
+  @override
+  Future<int> insertOrder(Order order) {
+    return _orderInsertionAdapter.insertAndReturnId(
+        order, OnConflictStrategy.replace);
   }
 
   @override
@@ -511,22 +596,26 @@ class _$OrderItemDao extends OrderItemDao {
   )   : _queryAdapter = QueryAdapter(database),
         _orderItemInsertionAdapter = InsertionAdapter(
             database,
-            'OrderItem',
+            'order_items',
             (OrderItem item) => <String, Object?>{
                   'id': item.id,
                   'orderId': item.orderId,
                   'productId': item.productId,
-                  'quantity': item.quantity
+                  'quantity': item.quantity,
+                  'price': item.price,
+                  'discount': item.discount
                 }),
         _orderItemDeletionAdapter = DeletionAdapter(
             database,
-            'OrderItem',
+            'order_items',
             ['id'],
             (OrderItem item) => <String, Object?>{
                   'id': item.id,
                   'orderId': item.orderId,
                   'productId': item.productId,
-                  'quantity': item.quantity
+                  'quantity': item.quantity,
+                  'price': item.price,
+                  'discount': item.discount
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -541,12 +630,28 @@ class _$OrderItemDao extends OrderItemDao {
 
   @override
   Future<List<OrderItem>> getAllOrderItems() async {
-    return _queryAdapter.queryList('SELECT * FROM OrderItem',
+    return _queryAdapter.queryList('SELECT * FROM order_items',
         mapper: (Map<String, Object?> row) => OrderItem(
-            row['id'] as int,
-            row['orderId'] as int,
-            row['productId'] as int,
-            row['quantity'] as int));
+            id: row['id'] as int?,
+            orderId: row['orderId'] as int,
+            productId: row['productId'] as int,
+            quantity: row['quantity'] as int,
+            price: row['price'] as double,
+            discount: row['discount'] as double?));
+  }
+
+  @override
+  Future<List<OrderItem>> getOrderItemsByOrderId(int orderId) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM order_items WHERE orderId = ?1',
+        mapper: (Map<String, Object?> row) => OrderItem(
+            id: row['id'] as int?,
+            orderId: row['orderId'] as int,
+            productId: row['productId'] as int,
+            quantity: row['quantity'] as int,
+            price: row['price'] as double,
+            discount: row['discount'] as double?),
+        arguments: [orderId]);
   }
 
   @override
@@ -728,25 +833,7 @@ class _$NotificationDao extends NotificationDao {
                   'id': item.id,
                   'title': item.title,
                   'message': item.message,
-                  'timestamp': item.timestamp,
-                  'type': item.type,
-                  'discount': item.discount,
-                  'endDate': item.endDate,
-                  'key': item.key
-                }),
-        _notificationsDeletionAdapter = DeletionAdapter(
-            database,
-            'Notifications',
-            ['id'],
-            (Notifications item) => <String, Object?>{
-                  'id': item.id,
-                  'title': item.title,
-                  'message': item.message,
-                  'timestamp': item.timestamp,
-                  'type': item.type,
-                  'discount': item.discount,
-                  'endDate': item.endDate,
-                  'key': item.key
+                  'timestamp': item.timestamp
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -757,39 +844,31 @@ class _$NotificationDao extends NotificationDao {
 
   final InsertionAdapter<Notifications> _notificationsInsertionAdapter;
 
-  final DeletionAdapter<Notifications> _notificationsDeletionAdapter;
-
   @override
   Future<List<Notifications>> getAllNotifications() async {
-    return _queryAdapter.queryList(
-        'SELECT * FROM Notifications ORDER BY timestamp DESC',
+    return _queryAdapter.queryList('SELECT * FROM Notifications',
         mapper: (Map<String, Object?> row) => Notifications(
             id: row['id'] as int,
             title: row['title'] as String,
             message: row['message'] as String,
-            timestamp: row['timestamp'] as String,
-            type: row['type'] as String,
-            discount: row['discount'] as double?,
-            endDate: row['endDate'] as String?,
-            key: row['key'] as int?));
+            timestamp: row['timestamp'] as String));
   }
 
   @override
-  Future<void> deleteExpiredNotifications(String currentTime) async {
-    await _queryAdapter.queryNoReturn(
-        'DELETE FROM Notifications WHERE endDate IS NOT NULL AND endDate < ?1',
-        arguments: [currentTime]);
+  Future<void> deleteNotificationById(int id) async {
+    await _queryAdapter.queryNoReturn('DELETE FROM Notifications WHERE id = ?1',
+        arguments: [id]);
+  }
+
+  @override
+  Future<void> deleteAllNotifications() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM Notifications');
   }
 
   @override
   Future<void> insertNotification(Notifications notification) async {
     await _notificationsInsertionAdapter.insert(
-        notification, OnConflictStrategy.abort);
-  }
-
-  @override
-  Future<void> deletenotification(Notifications notification) async {
-    await _notificationsDeletionAdapter.delete(notification);
+        notification, OnConflictStrategy.replace);
   }
 }
 
@@ -888,6 +967,111 @@ class _$CustomerDao extends CustomerDao {
   @override
   Future<int> deleteCustomer(Customer customer) {
     return _customerDeletionAdapter.deleteAndReturnChangedRows(customer);
+  }
+}
+
+class _$CartItemDao extends CartItemDao {
+  _$CartItemDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _cartItemInsertionAdapter = InsertionAdapter(
+            database,
+            'cart_items',
+            (CartItem item) => <String, Object?>{
+                  'id': item.id,
+                  'productId': item.productId,
+                  'productName': item.productName,
+                  'price': item.price,
+                  'imgURL': item.imgURL,
+                  'quantity': item.quantity,
+                  'discount': item.discount
+                }),
+        _cartItemUpdateAdapter = UpdateAdapter(
+            database,
+            'cart_items',
+            ['id'],
+            (CartItem item) => <String, Object?>{
+                  'id': item.id,
+                  'productId': item.productId,
+                  'productName': item.productName,
+                  'price': item.price,
+                  'imgURL': item.imgURL,
+                  'quantity': item.quantity,
+                  'discount': item.discount
+                }),
+        _cartItemDeletionAdapter = DeletionAdapter(
+            database,
+            'cart_items',
+            ['id'],
+            (CartItem item) => <String, Object?>{
+                  'id': item.id,
+                  'productId': item.productId,
+                  'productName': item.productName,
+                  'price': item.price,
+                  'imgURL': item.imgURL,
+                  'quantity': item.quantity,
+                  'discount': item.discount
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<CartItem> _cartItemInsertionAdapter;
+
+  final UpdateAdapter<CartItem> _cartItemUpdateAdapter;
+
+  final DeletionAdapter<CartItem> _cartItemDeletionAdapter;
+
+  @override
+  Future<List<CartItem>> getAllCartItems() async {
+    return _queryAdapter.queryList('SELECT * FROM cart_items',
+        mapper: (Map<String, Object?> row) => CartItem(
+            id: row['id'] as int?,
+            productId: row['productId'] as int,
+            productName: row['productName'] as String,
+            price: row['price'] as double,
+            imgURL: row['imgURL'] as String,
+            quantity: row['quantity'] as int,
+            discount: row['discount'] as double?));
+  }
+
+  @override
+  Future<CartItem?> findCartItemByProductId(int productId) async {
+    return _queryAdapter.query('SELECT * FROM cart_items WHERE productId = ?1',
+        mapper: (Map<String, Object?> row) => CartItem(
+            id: row['id'] as int?,
+            productId: row['productId'] as int,
+            productName: row['productName'] as String,
+            price: row['price'] as double,
+            imgURL: row['imgURL'] as String,
+            quantity: row['quantity'] as int,
+            discount: row['discount'] as double?),
+        arguments: [productId]);
+  }
+
+  @override
+  Future<void> deleteAllCartItems() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM cart_items');
+  }
+
+  @override
+  Future<void> insertCartItem(CartItem cartItem) async {
+    await _cartItemInsertionAdapter.insert(
+        cartItem, OnConflictStrategy.replace);
+  }
+
+  @override
+  Future<void> updateCartItem(CartItem cartItem) async {
+    await _cartItemUpdateAdapter.update(cartItem, OnConflictStrategy.replace);
+  }
+
+  @override
+  Future<void> deleteCartItem(CartItem cartItem) async {
+    await _cartItemDeletionAdapter.delete(cartItem);
   }
 }
 

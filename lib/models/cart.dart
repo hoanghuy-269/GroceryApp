@@ -1,21 +1,23 @@
 import 'package:floor/floor.dart';
 
-@Entity(tableName: 'order_items')
-class OrderItem {
+@Entity(tableName: 'cart_items')
+class CartItem {
   @PrimaryKey(autoGenerate: true)
   final int? id;
-  final int orderId;
   final int productId;
-  final int quantity;
+  final String productName;
   final double price;
+  final String imgURL;
+  final int quantity;
   final double? discount;
 
-  OrderItem({
+  CartItem({
     this.id,
-    required this.orderId,
     required this.productId,
-    required this.quantity,
+    required this.productName,
     required this.price,
+    required this.imgURL,
+    this.quantity = 1,
     this.discount,
   });
 }

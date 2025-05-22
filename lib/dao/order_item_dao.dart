@@ -3,7 +3,7 @@ import '../models/order_item.dart';
 
 @dao
 abstract class OrderItemDao {
-  @Query('SELECT * FROM OrderItem')
+  @Query('SELECT * FROM order_items')
   Future<List<OrderItem>> getAllOrderItems();
 
   @insert
@@ -11,4 +11,7 @@ abstract class OrderItemDao {
 
   @delete
   Future<void> deleteOrderItem(OrderItem orderItem);
+
+  @Query('SELECT * FROM order_items WHERE orderId = :orderId')
+  Future<List<OrderItem>> getOrderItemsByOrderId(int orderId);
 }

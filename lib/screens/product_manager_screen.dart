@@ -100,7 +100,7 @@ class _ProductScreenState extends State<ProductManagementScreen> {
                       TextButton(
                         onPressed: () {
                           Navigator.of(context).pop();
-                          _logout(); // gọi hàm logout đã bổ sung
+                          _logout();
                         },
                         child: const Text('Đăng xuất'),
                       ),

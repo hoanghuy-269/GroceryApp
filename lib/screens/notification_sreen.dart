@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_app/database/app_database.dart';
 import 'package:grocery_app/models/notification.dart';
+import 'package:grocery_app/models/product.dart';
 import 'package:intl/intl.dart';
+import 'package:grocery_app/database/database_provider.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -22,56 +24,27 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Future<void> _initDatabase() async {
-    _database = await $FloorAppDatabase.databaseBuilder('app_database.db').build();
+    _database = await DatabaseProvider.database;
 
-    // Xóa thông báo hết hạn
-    await _database.notificationDao.deleteExpiredNotifications(
-      DateTime.now().toIso8601String(),
+    // Xóa các thông báo cũ trước khi tạo mới
+    await _database.notificationDao.deleteAllNotifications();
+
+    // Tạo mới thông báo nếu sản phẩm hiện tại < 5
+    final lowStockProducts = await _database.productDao.getProductsWithLowStock(
+      5,
     );
-
-    // Thêm thông báo giảm giá mẫu nếu database rỗng
-    final existingNotifications =
-        await _database.notificationDao.getAllNotifications();
-    if (existingNotifications.isEmpty) {
+    for (var product in lowStockProducts) {
       await _database.notificationDao.insertNotification(
         Notifications(
-          title: 'Khuyến mãi mới',
-          message: 'Giảm 20% cho tất cả mì ăn liền từ 17/05 đến 20/05/2025!',
+          id: DateTime.now().millisecondsSinceEpoch,
+          title: 'Sản phẩm sắp hết',
+          message: '${product.name} chỉ còn ${product.quantity} sản phẩm',
           timestamp: DateTime.now().toIso8601String(),
-          type: 'promotion',
-          discount: 20.0,
-          endDate: DateTime(2025, 5, 18, 20, 10, 59).toIso8601String(),
-          key: 3,
-          id: 1,
         ),
       );
-      // await _database.notificationDao.insertNotification(
-      //   Notifications(
-      //     title: 'Khuyến mãi mới',
-      //     message: 'Giảm 20% cho tất cả đồ dùng học tập ',
-      //     timestamp: DateTime.now().toIso8601String(),
-      //     type: 'promotion',
-      //     discount: 20.0,
-      //     endDate: DateTime(2025, 5, 17, 11, 59, 00).toIso8601String(),
-      //     key: 3,
-      //     id: 2,
-      //   ),
-      // );
-      // // Thêm thông báo giảm giá mới
-      // await _database.notificationDao.insertNotification(
-      //   Notifications(
-      //     title: 'Khuyến mãi đặc biệt',
-      //     message: 'Giảm 15% cho tất cả đồ uống ',
-      //     timestamp: DateTime.now().toIso8601String(),
-      //     type: 'promotion',
-      //     discount: 15.0,
-      //     endDate: DateTime(2025, 5, 18, 8, 00, 00).toIso8601String(),
-      //     key: 4,
-      //     id: 3,
-      //   ),
-      // );
     }
 
+    // Tải tất cả thông báo để hiển thị
     final loadedNotifications =
         await _database.notificationDao.getAllNotifications();
     setState(() {
@@ -88,7 +61,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
           isLoading
               ? const Center(child: CircularProgressIndicator())
               : notifications.isEmpty
-              ? const Center(child: Text('Chưa có thông báo nào.'))
+              ? const Center(child: Text('Không có thông báo nào.'))
               : ListView.builder(
                 padding: const EdgeInsets.all(8),
                 itemCount: notifications.length,
@@ -97,24 +70,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     child: ListTile(
-                      leading: Icon(
-                        _getIconForType(notification.type),
-                        color: Colors.blue,
-                      ),
                       title: Text(notification.title),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(notification.message),
-                          if (notification.discount != null)
-                            Text(
-                              'Giảm ${notification.discount}%',
-                              style: const TextStyle(
-                                color: Colors.green,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
                           const SizedBox(height: 4),
                           Text(
                             DateFormat(
@@ -127,40 +87,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           ),
                         ],
                       ),
-                      onTap: () {
-                        if (notification.type == 'promotion' &&
-                            notification.key != null) {
-                          Navigator.pop(context, {
-                            'category': {
-                              'label':
-                                  notification.id == 0 
-                                      ? 'Mì - Cháo Ăn liền'
-                                      : 'Đồ uống',
-                            },
-                          });
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Đã nhấn: ${notification.title}'),
-                            ),
-                          );
-                        }
-                      },
                     ),
                   );
                 },
               ),
     );
-  }
-
-  IconData _getIconForType(String type) {
-    switch (type) {
-      case 'promotion':
-        return Icons.local_offer;
-      case 'cart':
-        return Icons.shopping_cart;
-      default:
-        return Icons.info;
-    }
   }
 }

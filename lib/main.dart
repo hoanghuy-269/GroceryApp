@@ -10,8 +10,6 @@ import 'package:grocery_app/screens/purchase_history_sreen.dart';
 
 import 'package:grocery_app/screens/home.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:grocery_app/screens/print.dart';
-import 'package:grocery_app/screens/account_screen.dart';
 import 'package:grocery_app/screens/login_screen.dart';
 import 'package:grocery_app/screens/home.dart';
 import 'package:grocery_app/database/database_provider.dart';
@@ -36,10 +34,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Grocery App',
-      theme: ThemeData( 
+      theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: CustomerScreen(), 
+      home: LoginScreen(),
     );
   }
 }

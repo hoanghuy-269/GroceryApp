@@ -1,94 +1,164 @@
 import 'package:flutter/material.dart';
-import 'package:grocery_app/screens/home.dart'; // Màn hình chính
-import 'package:grocery_app/screens/cart_screen.dart'; // Màn hình giỏ hàng
-import 'package:grocery_app/screens/account_screen.dart'; // Màn hình tài khoản
-import 'package:grocery_app/models/product.dart'; // Mô hình sản phẩm
+import 'package:flutter/scheduler.dart';
+import 'package:grocery_app/database/app_database.dart';
+import 'package:grocery_app/models/cart.dart';
+import 'package:grocery_app/screens/home.dart';
+import 'package:grocery_app/screens/cart_screen.dart';
+import 'package:grocery_app/screens/order_stats_screen.dart';
+import 'package:grocery_app/screens/product_manager_screen.dart';
+import 'package:grocery_app/models/product.dart';
+import 'package:grocery_app/database/database_provider.dart';
 
 class MyBottom extends StatefulWidget {
-  final String userEmail;
+  final String userName;
 
-  const MyBottom({super.key, required this.userEmail});
+  const MyBottom({super.key, required this.userName});
 
   @override
-  State<StatefulWidget> createState() => _MyBottomState();
+  State<MyBottom> createState() => _MyBottomState();
 }
 
 class _MyBottomState extends State<MyBottom> {
-  int _selected = 0; // Màn hình hiện tại
-  List<Product> cartProducts = []; // Giỏ hàng
+  int _selected = 0;
+  List<CartItem> cartProducts = [];
+  late AppDatabase _database;
+  String? _snackBarMessage; // Biến trạng thái để lưu thông báo
 
-  late final List<Widget> _screens;
+  late final List<Widget Function()> _screenBuilders;
 
   @override
   void initState() {
     super.initState();
-    _screens = [
-      Home(onAddToCart: _addToCart), // Truyền hàm thêm vào giỏ hàng
-      CartScreen(
-        cartItems: cartProducts,
-      ), // Truyền giỏ hàng vào màn hình giỏ hàng
-      AccountScreen(email: widget.userEmail), // Màn hình tài khoản
+    _screenBuilders = [
+      () => Home(onAddToCart: _addToCart),
+      () => CartScreen(cartItems: cartProducts),
+      () => ProductManagementScreen(),
+      () => RevenueStatisticsScreen(),
     ];
+
+    // Chạy các tác vụ bất đồng bộ sau khi widget được gắn
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _initDatabaseAndLoadCart();
+    });
   }
 
-  // Hàm thêm sản phẩm vào giỏ hàng
-  void _addToCart(Product product) {
-  setState(() {
-    final index = cartProducts.indexWhere((item) => item.id == product.id);
+  Future<void> _initDatabaseAndLoadCart() async {
+    await _initDatabase();
+    await _loadCartProducts();
+  }
 
-    if (index != -1) {
-      // Nếu đã có sản phẩm => tăng số lượng
-      final updatedProduct = cartProducts[index].copyWith(
-        quantity: cartProducts[index].quantity + 1,
-      );
-      cartProducts[index] = updatedProduct;
-      debugPrint('[CART] Tăng số lượng: ${updatedProduct.toString()}');
-    } else {
-      // Nếu chưa có => thêm mới với quantity = 1
-      final newProduct = product.copyWith(quantity: 1);
-      cartProducts.add(newProduct);
-      debugPrint('[CART] Thêm mới: ${newProduct.toString()}');
+  Future<void> _initDatabase() async {
+    _database = await DatabaseProvider.database;
+  }
+
+  Future<void> _loadCartProducts() async {
+    try {
+      final loadedCartItems = await _database.cartItemDao.getAllCartItems();
+      setState(() {
+        cartProducts = loadedCartItems;
+      });
+    } catch (e) {
+      setState(() {
+        _snackBarMessage = 'Lỗi khi tải giỏ hàng: $e';
+      });
     }
-
-    _debugCartContents(); // In log toàn bộ giỏ hàng
-  });
-
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('${product.name} đã được thêm vào giỏ hàng')),
-  );
-}
-void _debugCartContents() {
-  debugPrint('------ Danh sách giỏ hàng hiện tại ------');
-  for (var item in cartProducts) {
-    debugPrint('${item.toString()}');
   }
-  debugPrint('----------------------------------------');
-}
 
+  Future<void> _addToCart(Product product) async {
+    try {
+      final existingCartItem = cartProducts.firstWhere(
+        (item) => item.productId == product.id,
+        orElse:
+            () => CartItem(
+              id: null,
+              productId: product.id!,
+              productName: product.name,
+              price: product.price,
+              imgURL: product.imgURL,
+              quantity: 0,
+              discount: product.discount,
+            ),
+      );
 
+      if (existingCartItem.quantity > 0) {
+        final updatedCartItem = CartItem(
+          id: existingCartItem.id,
+          productId: existingCartItem.productId,
+          productName: existingCartItem.productName,
+          price: existingCartItem.price,
+          imgURL: existingCartItem.imgURL,
+          quantity: existingCartItem.quantity + 1,
+          discount: existingCartItem.discount,
+        );
+        await _database.cartItemDao.updateCartItem(updatedCartItem);
+        print(
+          'Cập nhật CartItem: ${updatedCartItem.productName}, Số lượng: ${updatedCartItem.quantity}',
+        );
+        setState(() {
+          _snackBarMessage = '${product.name} đã được cập nhật trong giỏ hàng';
+        });
+      } else {
+        final newCartItem = CartItem(
+          productId: product.id!,
+          productName: product.name,
+          price: product.price,
+          imgURL: product.imgURL,
+          quantity: 1,
+          discount: product.discount,
+        );
+        await _database.cartItemDao.insertCartItem(newCartItem);
+        print(
+          'Thêm mới CartItem: ${newCartItem.productName}, Số lượng: ${newCartItem.quantity}',
+        );
+        setState(() {
+          _snackBarMessage = '${product.name} đã được thêm vào giỏ hàng';
+        });
+      }
 
-  // Hàm xử lý sự kiện khi người dùng chuyển tab
+      await _loadCartProducts();
+    } catch (e) {
+      setState(() {
+        _snackBarMessage = 'Lỗi khi thêm vào giỏ hàng: $e';
+      });
+    }
+  }
+
   void _onPress(int index) {
     setState(() {
-      _selected = index; // Cập nhật màn hình hiện tại
+      _selected = index;
     });
+    if (index == 1) {
+      _loadCartProducts();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Hiển thị SnackBar dựa trên _snackBarMessage
+    if (_snackBarMessage != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(_snackBarMessage!)));
+        setState(() {
+          _snackBarMessage = null; // Xóa thông báo sau khi hiển thị
+        });
+      });
+    }
+
     return Scaffold(
-      body: _screens[_selected], // Hiển thị màn hình tương ứng với tab đã chọn
+      body: _screenBuilders[_selected](),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selected, // Hiển thị tab hiện tại
-        onTap: _onPress, // Sự kiện khi người dùng chọn tab
+        currentIndex: _selected,
+        onTap: _onPress,
         selectedItemColor: Colors.blueAccent,
         unselectedItemColor: Colors.grey,
         items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          const BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(
             icon: Stack(
               children: [
-                Icon(Icons.shopping_cart),
+                const Icon(Icons.shopping_cart),
                 if (cartProducts.isNotEmpty)
                   Positioned(
                     right: 0,
@@ -98,7 +168,10 @@ void _debugCartContents() {
                       backgroundColor: Colors.red,
                       child: Text(
                         cartProducts.length.toString(),
-                        style: TextStyle(fontSize: 12, color: Colors.white),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
@@ -106,23 +179,39 @@ void _debugCartContents() {
             ),
             label: "Cart",
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: "Profile",
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.bar_chart),
+            label: "Chart",
+          ),
         ],
       ),
     );
   }
+}
 
-  // Tiêu đề của AppBar thay đổi khi người dùng chuyển tab
-  String _getAppBarTitle() {
-    switch (_selected) {
-      case 0:
-        return "Home";
-      case 1:
-        return "Cart"; // Cập nhật tiêu đề cho tab giỏ hàng
-      case 2:
-        return "Profile";
-      default:
-        return "";
-    }
+// Thêm extension để hỗ trợ copyWith cho CartItem
+extension CartItemExtension on CartItem {
+  CartItem copyWith({
+    int? id,
+    int? productId,
+    String? productName,
+    double? price,
+    String? imgURL,
+    int? quantity,
+    double? discount,
+  }) {
+    return CartItem(
+      id: id ?? this.id,
+      productId: productId ?? this.productId,
+      productName: productName ?? this.productName,
+      price: price ?? this.price,
+      imgURL: imgURL ?? this.imgURL,
+      quantity: quantity ?? this.quantity,
+      discount: discount ?? this.discount,
+    );
   }
 }
