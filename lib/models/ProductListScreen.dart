@@ -45,7 +45,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   void _goToCart() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => CartScreen(cartItems: cartItems)),
+      MaterialPageRoute(builder: (_) => CartScreen(cartItems: [])),
     );
   }
 

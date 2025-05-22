@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:grocery_app/models/product.dart';
-import 'InvoiceScreen.dart'; // Đảm bảo đường dẫn đúng với file invoice.dart của bạn
+import 'package:grocery_app/models/cart.dart';
+import 'package:grocery_app/screens/InvoiceScreen.dart'; // Đảm bảo đường dẫn đúng với file invoice.dart
 
 class PayScreen extends StatelessWidget {
   final double totalAmount;
-  final List<Product> products;
+  final List<CartItem> products; // Thay List<Product> thành List<CartItem>
 
   const PayScreen({
     super.key,

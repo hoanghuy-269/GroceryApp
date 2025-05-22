@@ -1,18 +1,21 @@
-
 import 'package:floor/floor.dart';
 import 'package:grocery_app/models/notification.dart';
 
 @dao
 abstract class NotificationDao {
-  @Query('SELECT * FROM Notifications ORDER BY timestamp DESC')
+  // Lấy tất cả thông báo
+  @Query('SELECT * FROM Notifications')
   Future<List<Notifications>> getAllNotifications();
 
-  @insert
+  // Thêm thông báo mới
+  @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertNotification(Notifications notification);
 
-  @delete
-  Future<void> deletenotification(Notifications notification);
+  // Xóa thông báo theo ID
+  @Query('DELETE FROM Notifications WHERE id = :id')
+  Future<void> deleteNotificationById(int id);
 
-  @Query('DELETE FROM Notifications WHERE endDate IS NOT NULL AND endDate < :currentTime')
-  Future<void> deleteExpiredNotifications(String currentTime);
+  // Xóa tất cả thông báo (nếu cần)
+  @Query('DELETE FROM Notifications')
+  Future<void> deleteAllNotifications();
 }

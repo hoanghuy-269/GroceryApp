@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:grocery_app/database/app_database.dart';
+import 'package:grocery_app/models/cart.dart';
 import 'package:grocery_app/screens/home.dart';
 import 'package:grocery_app/screens/cart_screen.dart';
+import 'package:grocery_app/screens/order_stats_screen.dart';
 import 'package:grocery_app/screens/product_manager_screen.dart';
 import 'package:grocery_app/models/product.dart';
 
@@ -15,47 +19,135 @@ class MyBottom extends StatefulWidget {
 
 class _MyBottomState extends State<MyBottom> {
   int _selected = 0;
-  List<Product> cartProducts = [];
+  List<CartItem> cartProducts = [];
+  late AppDatabase _database;
+  String? _snackBarMessage; // Biến trạng thái để lưu thông báo
 
-  late final List<Widget> _screens;
+  late final List<Widget Function()> _screenBuilders;
 
   @override
   void initState() {
     super.initState();
-    _screens = [
-      Home(onAddToCart: _addToCart),
-      CartScreen(cartItems: cartProducts),
-      ProductManagementScreen(),
+    _screenBuilders = [
+      () => Home(onAddToCart: _addToCart),
+      () => CartScreen(cartItems: cartProducts),
+      () => ProductManagementScreen(),
+      //() => OrderStatsScreen(),
     ];
+
+    // Chạy các tác vụ bất đồng bộ sau khi widget được gắn
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _initDatabaseAndLoadCart();
+    });
   }
 
-  void _addToCart(Product product) {
-    setState(() {
-      final index = cartProducts.indexWhere((item) => item.id == product.id);
-      if (index != -1) {
-        cartProducts[index] = cartProducts[index].copyWith(
-          quantity: cartProducts[index].quantity + 1,
-        );
-      } else {
-        cartProducts.add(product.copyWith(quantity: 1));
-      }
-    });
+  Future<void> _initDatabaseAndLoadCart() async {
+    await _initDatabase();
+    await _loadCartProducts();
+  }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${product.name} đã được thêm vào giỏ hàng')),
-    );
+  Future<void> _initDatabase() async {
+    _database =
+        await $FloorAppDatabase.databaseBuilder('app_database.db').build();
+  }
+
+  Future<void> _loadCartProducts() async {
+    try {
+      final loadedCartItems = await _database.cartItemDao.getAllCartItems();
+      setState(() {
+        cartProducts = loadedCartItems;
+      });
+    } catch (e) {
+      setState(() {
+        _snackBarMessage = 'Lỗi khi tải giỏ hàng: $e';
+      });
+    }
+  }
+
+  Future<void> _addToCart(Product product) async {
+    try {
+      final existingCartItem = cartProducts.firstWhere(
+        (item) => item.productId == product.id,
+        orElse:
+            () => CartItem(
+              id: null,
+              productId: product.id!,
+              productName: product.name,
+              price: product.price,
+              imgURL: product.imgURL,
+              quantity: 0,
+              discount: product.discount,
+            ),
+      );
+
+      if (existingCartItem.quantity > 0) {
+        final updatedCartItem = CartItem(
+          id: existingCartItem.id,
+          productId: existingCartItem.productId,
+          productName: existingCartItem.productName,
+          price: existingCartItem.price,
+          imgURL: existingCartItem.imgURL,
+          quantity: existingCartItem.quantity + 1,
+          discount: existingCartItem.discount,
+        );
+        await _database.cartItemDao.updateCartItem(updatedCartItem);
+        print(
+          'Cập nhật CartItem: ${updatedCartItem.productName}, Số lượng: ${updatedCartItem.quantity}',
+        );
+        setState(() {
+          _snackBarMessage = '${product.name} đã được cập nhật trong giỏ hàng';
+        });
+      } else {
+        final newCartItem = CartItem(
+          productId: product.id!,
+          productName: product.name,
+          price: product.price,
+          imgURL: product.imgURL,
+          quantity: 1,
+          discount: product.discount,
+        );
+        await _database.cartItemDao.insertCartItem(newCartItem);
+        print(
+          'Thêm mới CartItem: ${newCartItem.productName}, Số lượng: ${newCartItem.quantity}',
+        );
+        setState(() {
+          _snackBarMessage = '${product.name} đã được thêm vào giỏ hàng';
+        });
+      }
+
+      await _loadCartProducts();
+    } catch (e) {
+      setState(() {
+        _snackBarMessage = 'Lỗi khi thêm vào giỏ hàng: $e';
+      });
+    }
   }
 
   void _onPress(int index) {
     setState(() {
       _selected = index;
     });
+    if (index == 1) {
+      _loadCartProducts();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Hiển thị SnackBar dựa trên _snackBarMessage
+    if (_snackBarMessage != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(_snackBarMessage!)));
+        setState(() {
+          _snackBarMessage = null; // Xóa thông báo sau khi hiển thị
+        });
+      });
+    }
+
     return Scaffold(
-      body: _screens[_selected],
+      body: _screenBuilders[_selected](),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selected,
         onTap: _onPress,
@@ -91,8 +183,35 @@ class _MyBottomState extends State<MyBottom> {
             icon: Icon(Icons.person),
             label: "Profile",
           ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.bar_chart),
+            label: "Chart",
+          ),
         ],
       ),
+    );
+  }
+}
+
+// Thêm extension để hỗ trợ copyWith cho CartItem
+extension CartItemExtension on CartItem {
+  CartItem copyWith({
+    int? id,
+    int? productId,
+    String? productName,
+    double? price,
+    String? imgURL,
+    int? quantity,
+    double? discount,
+  }) {
+    return CartItem(
+      id: id ?? this.id,
+      productId: productId ?? this.productId,
+      productName: productName ?? this.productName,
+      price: price ?? this.price,
+      imgURL: imgURL ?? this.imgURL,
+      quantity: quantity ?? this.quantity,
+      discount: discount ?? this.discount,
     );
   }
 }
