@@ -38,7 +38,9 @@ class _PayScreenState extends State<PayScreen> {
     _finalTotal = widget.totalAmount; // Khởi tạo với totalAmount từ CartScreen
     _selectedCustomer = widget.customer;
     _pointsUsed = widget.pointsUsed ?? 0;
-    _discountFromPoints = _pointsUsed * (widget.totalAmount / 100.0); // Tính giảm giá nếu đã dùng điểm
+    _discountFromPoints =
+        _pointsUsed *
+        (widget.totalAmount / 100.0); // Tính giảm giá nếu đã dùng điểm
     _initDatabase();
   }
 
@@ -51,9 +53,9 @@ class _PayScreenState extends State<PayScreen> {
   Future<void> _showSelectCustomerDialog() async {
     final customers = await _customerDao.getAllCustomers();
     if (customers.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Không có khách hàng nào")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Không có khách hàng nào")));
       return;
     }
 
@@ -93,7 +95,9 @@ class _PayScreenState extends State<PayScreen> {
   // Dialog nhập số điểm
   Future<void> _showUsePointsDialog(Customer customer) async {
     final pointsController = TextEditingController();
-    final subTotal = widget.totalAmount + _discountFromPoints; // Lấy lại subTotal trước khi giảm
+    final subTotal =
+        widget.totalAmount +
+        _discountFromPoints; // Lấy lại subTotal trước khi giảm
 
     showDialog<void>(
       context: context,
@@ -128,12 +132,13 @@ class _PayScreenState extends State<PayScreen> {
                   return;
                 }
                 if (pointsToUse > customer.points) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Không đủ điểm")),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text("Không đủ điểm")));
                   return;
                 }
-                double discount = subTotal * (pointsToUse / 100.0); // 1 điểm = 1% giảm
+                double discount =
+                    subTotal * (pointsToUse / 100.0); // 1 điểm = 1% giảm
                 if (discount > subTotal) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text("Điểm vượt quá hóa đơn")),
@@ -152,12 +157,19 @@ class _PayScreenState extends State<PayScreen> {
   }
 
   // Áp dụng điểm
-  Future<void> _applyPoints(Customer customer, int pointsToUse, double discount) async {
+  Future<void> _applyPoints(
+    Customer customer,
+    int pointsToUse,
+    double discount,
+  ) async {
     setState(() {
       _selectedCustomer = customer;
       _discountFromPoints = discount;
       _pointsUsed = pointsToUse;
-      _finalTotal = widget.totalAmount + _discountFromPoints - discount; // Cập nhật tổng tiền
+      _finalTotal =
+          widget.totalAmount +
+          _discountFromPoints -
+          discount; // Cập nhật tổng tiền
     });
 
     final updatedCustomer = Customer(
@@ -207,7 +219,7 @@ class _PayScreenState extends State<PayScreen> {
             ),
             const SizedBox(height: 20),
             Text(
-              '${_finalTotal.toStringAsFixed(3)} đ',
+              '${_finalTotal.toStringAsFixed(0)} đ',
               style: const TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -221,12 +233,13 @@ class _PayScreenState extends State<PayScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => InvoiceScreen(
-                      products: widget.products,
-                      customer: _selectedCustomer, // Truyền khách hàng
-                      pointsUsed: _pointsUsed, // Truyền điểm đã sử dụng
-                      totalAmount: _finalTotal, // Truyền tổng tiền sau giảm
-                    ),
+                    builder:
+                        (context) => InvoiceScreen(
+                          products: widget.products,
+                          customer: _selectedCustomer, // Truyền khách hàng
+                          pointsUsed: _pointsUsed, // Truyền điểm đã sử dụng
+                          totalAmount: _finalTotal, // Truyền tổng tiền sau giảm
+                        ),
                   ),
                 );
               },

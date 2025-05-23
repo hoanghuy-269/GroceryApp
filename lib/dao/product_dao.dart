@@ -39,7 +39,6 @@ abstract class ProductDao {
   @Query('SELECT * FROM Product WHERE id = :id')
   Future<Product?> findProductById(int id);
 
-  // Thêm hàm updateQuantity
   @Query('UPDATE Product SET quantity = :newQuantity WHERE id = :productId')
   Future<void> updateQuantity(int productId, int newQuantity);
 }

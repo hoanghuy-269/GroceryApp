@@ -111,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  hintText: 'Email or Phone',
+                  hintText: 'Name',
                   prefixIcon: const Icon(Icons.person),
                   filled: true,
                   fillColor: Colors.white,

@@ -98,7 +98,9 @@ class _HomeState extends State<Home> {
     final filteredProducts =
         products
             .where(
-              (p) => p.name.toLowerCase().contains(searchQuery.toLowerCase()),
+              (p) =>
+                  p.quantity > 0 &&
+                  p.name.toLowerCase().contains(searchQuery.toLowerCase()),
             )
             .toList();
     return Scaffold(
@@ -225,8 +227,6 @@ class _HomeState extends State<Home> {
                           final product = filteredProducts[index];
                           return ProductCard(
                             product: product,
-                            onFavorite: _toggleFavorite,
-                            isFavorite: favoriteProducts.contains(product),
                             onAddToCart: widget.onAddToCart,
                           );
                         },
@@ -239,21 +239,14 @@ class _HomeState extends State<Home> {
   }
 }
 
-
-
-
 class ProductCard extends StatelessWidget {
   final Product product;
   final Function(Product) onAddToCart;
-  final Function(Product) onFavorite;
-  final bool isFavorite;
 
   const ProductCard({
     super.key,
     required this.product,
     required this.onAddToCart,
-    required this.onFavorite,
-    required this.isFavorite,
   });
 
   @override
@@ -264,107 +257,94 @@ class ProductCard extends StatelessWidget {
             : product.price;
 
     return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Stack(
-            children: [
-              InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ProductDetail(product: product),
-                    ),
-                  );
-                },
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  topRight: Radius.circular(12),
-                ),
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    topRight: Radius.circular(12),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProductDetail(product: product),
                   ),
-                  child: Center(
-                    child:
-                        product.imgURL.isNotEmpty
-                            ? Image.file(
-                              File(product.imgURL),
-                              fit: BoxFit.fill,
-                              height: 100,
-                              width: double.infinity,
-                              errorBuilder:
-                                  (context, error, stackTrace) =>
-                                      const Icon(Icons.broken_image, size: 50),
-                            )
-                            : const Icon(Icons.image_not_supported, size: 50),
-                  ),
+                );
+              },
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child:
+                    product.imgURL.isNotEmpty
+                        ? Image.file(
+                          File(product.imgURL),
+                          height: 100,
+                          fit: BoxFit.cover,
+                        )
+                        : Container(
+                          height: 100,
+                          color: Colors.grey[200],
+                          child: const Icon(Icons.image, size: 40),
+                        ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              product.name,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 4),
+            if (product.discount != null && product.discount! > 0) ...[
+              Text(
+                '${product.price.toStringAsFixed(0)} VND',
+                style: const TextStyle(
+                  decoration: TextDecoration.lineThrough,
+                  color: Colors.grey,
+                  fontSize: 12,
                 ),
               ),
-              Positioned(
-                top: 6,
-                right: 6,
-                child: IconButton(
-                  icon: Icon(
-                    isFavorite ? Icons.favorite : Icons.favorite_border,
-                    color: isFavorite ? Colors.red : Colors.grey,
-                  ),
-                  onPressed: () => onFavorite(product),
+              Text(
+                '${finalPrice.toStringAsFixed(0)} VND',
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
                 ),
+              ),
+              Text(
+                'Giảm ${product.discount!.toStringAsFixed(0)}%',
+                style: const TextStyle(color: Colors.green, fontSize: 12),
+              ),
+            ] else ...[
+              Text(
+                '${product.price.toStringAsFixed(0)} VND',
+                style: const TextStyle(fontSize: 14),
               ),
             ],
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              product.name,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (product.discount != null && product.discount! > 0) ...[
-                  Text(
-                    '${product.price.toStringAsFixed(0)} VND',
-                    style: const TextStyle(
-                      decoration: TextDecoration.lineThrough,
-                      color: Colors.grey,
-                      fontSize: 12,
-                    ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 40,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.add_shopping_cart, size: 18),
+                label: const Text(
+                  "Thêm vào giỏ",
+                  style: TextStyle(fontSize: 14),
+                ),
+                onPressed: () => onAddToCart(product),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  Text(
-                    '${finalPrice.toStringAsFixed(0)} VND',
-                    style: const TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'Giảm ${product.discount}%',
-                    style: const TextStyle(color: Colors.green, fontSize: 12),
-                  ),
-                ] else ...[
-                  Text('${product.price.toStringAsFixed(0)} VND'),
-                ],
-              ],
+                ),
+              ),
             ),
-          ),
-          const Spacer(),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              onPressed: () => onAddToCart(product),
-              child: const Text('Thêm vào giỏ hàng'),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
