@@ -126,7 +126,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Notifications` (`id` INTEGER NOT NULL, `title` TEXT NOT NULL, `message` TEXT NOT NULL, `timestamp` TEXT NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `customers` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `phone` TEXT NOT NULL, `points` INTEGER NOT NULL)');
+            'CREATE TABLE IF NOT EXISTS `customers` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL, `phone` TEXT NOT NULL, `points` INTEGER NOT NULL)');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `cart_items` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `productId` INTEGER NOT NULL, `productName` TEXT NOT NULL, `price` REAL NOT NULL, `imgURL` TEXT NOT NULL, `quantity` INTEGER NOT NULL, `discount` REAL)');
 
@@ -924,7 +924,7 @@ class _$CustomerDao extends CustomerDao {
     return _queryAdapter.queryList('SELECT * FROM customers',
         mapper: (Map<String, Object?> row) => Customer(
             name: row['name'] as String,
-            id: row['id'] as int,
+            id: row['id'] as int?,
             phone: row['phone'] as String,
             points: row['points'] as int));
   }
@@ -934,7 +934,7 @@ class _$CustomerDao extends CustomerDao {
     return _queryAdapter.query('SELECT * FROM customers WHERE id = ?1',
         mapper: (Map<String, Object?> row) => Customer(
             name: row['name'] as String,
-            id: row['id'] as int,
+            id: row['id'] as int?,
             phone: row['phone'] as String,
             points: row['points'] as int),
         arguments: [id]);
@@ -946,7 +946,7 @@ class _$CustomerDao extends CustomerDao {
         'SELECT * FROM customers WHERE phone = ?1 LIMIT 1',
         mapper: (Map<String, Object?> row) => Customer(
             name: row['name'] as String,
-            id: row['id'] as int,
+            id: row['id'] as int?,
             phone: row['phone'] as String,
             points: row['points'] as int),
         arguments: [phone]);

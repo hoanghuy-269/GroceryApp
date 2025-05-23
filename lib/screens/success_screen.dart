@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:grocery_app/screens/purchase_history_sreen.dart';
-
 class SuccessScreen extends StatefulWidget {
   const SuccessScreen({super.key});
 

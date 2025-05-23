@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:grocery_app/database/app_database.dart';
 import 'package:grocery_app/models/cart.dart';
+import 'package:grocery_app/screens/Customer.dart';
 import 'package:grocery_app/screens/home.dart';
 import 'package:grocery_app/screens/cart_screen.dart';
 import 'package:grocery_app/screens/order_stats_screen.dart';
@@ -34,6 +35,7 @@ class _MyBottomState extends State<MyBottom> {
       () => CartScreen(cartItems: cartProducts),
       () => ProductManagementScreen(),
       () => RevenueStatisticsScreen(),
+      () => CustomerScreen()
     ];
 
     // Chạy các tác vụ bất đồng bộ sau khi widget được gắn
@@ -186,6 +188,10 @@ class _MyBottomState extends State<MyBottom> {
           const BottomNavigationBarItem(
             icon: Icon(Icons.bar_chart),
             label: "Chart",
+          ),
+        const BottomNavigationBarItem(
+            icon: Icon(Icons.people),
+            label: "Customer",
           ),
         ],
       ),
