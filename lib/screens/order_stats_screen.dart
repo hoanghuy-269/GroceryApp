@@ -138,6 +138,7 @@ class _RevenueStatisticsScreenState extends State<RevenueStatisticsScreen> {
   @override
   Widget build(BuildContext context) {
     final sortedKeys = _filteredDailyTotals.keys.toList()..sort();
+
     final maxRevenue = _filteredDailyTotals.values.fold<double>(
       0,
       (prev, e) => e > prev ? e : prev,
@@ -145,6 +146,16 @@ class _RevenueStatisticsScreenState extends State<RevenueStatisticsScreen> {
     final maxOrders = _filteredDailyCounts.values.fold<int>(
       0,
       (prev, e) => e > prev ? e : prev,
+    );
+
+    final totalRevenue = _filteredDailyTotals.values.fold<double>(
+      0,
+      (prev, e) => prev + e,
+    );
+
+    final totalOrders = _filteredDailyCounts.values.fold<int>(
+      0,
+      (prev, e) => prev + e,
     );
 
     final maxY =
@@ -155,8 +166,8 @@ class _RevenueStatisticsScreenState extends State<RevenueStatisticsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Thống kê doanh thu & đơn hàng'),
-        backgroundColor: Colors.blueAccent,
+        title: const Text('Thống kê doanh thu'),
+        backgroundColor: const Color.fromARGB(255, 43, 197, 146),
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_list),
@@ -176,19 +187,28 @@ class _RevenueStatisticsScreenState extends State<RevenueStatisticsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Biểu đồ Doanh Thu',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
             const SizedBox(height: 8),
             if (_selectedDateRange != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
-                  'Từ ${DateFormat('dd/MM/yyyy').format(_selectedDateRange!.start)} đến ${DateFormat('dd/MM/yyyy').format(_selectedDateRange!.end)}',
+                  'Từ ${DateFormat('dd/MM/yyyy').format(_selectedDateRange!.start)} '
+                  'đến ${DateFormat('dd/MM/yyyy').format(_selectedDateRange!.end)}',
                   style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
               ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'Tổng doanh thu: ${NumberFormat.currency(locale: 'vi', symbol: 'VNĐ').format(totalRevenue)}\n'
+                'Tổng số đơn hàng: $totalOrders',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
             SizedBox(
               height: 350,
               child:
@@ -200,9 +220,7 @@ class _RevenueStatisticsScreenState extends State<RevenueStatisticsScreen> {
                       )
                       : LayoutBuilder(
                         builder: (context, constraints) {
-                          final barWidth = 16.0; // Chiều rộng của mỗi cột
-                          final groupSpace =
-                              constraints.maxWidth / sortedKeys.length;
+                          final barWidth = 24.0;
                           return Stack(
                             children: [
                               BarChart(
@@ -289,9 +307,16 @@ class _RevenueStatisticsScreenState extends State<RevenueStatisticsScreen> {
                                       barRods: [
                                         BarChartRodData(
                                           toY: revenue,
-                                          color: Colors.blue,
+                                          color: const Color.fromARGB(
+                                            255,
+                                            63,
+                                            181,
+                                            122,
+                                          ),
                                           width: barWidth,
-                                          borderRadius: BorderRadius.zero,
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
                                         ),
                                       ],
                                       showingTooltipIndicators: [0],
@@ -308,7 +333,10 @@ class _RevenueStatisticsScreenState extends State<RevenueStatisticsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildLegendItem(Colors.blue, 'Doanh thu'),
+                _buildLegendItem(
+                  Color.fromARGB(255, 63, 181, 122),
+                  'Doanh thu',
+                ),
                 const SizedBox(width: 20),
               ],
             ),

@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_app/screens/botttom_navgation_srceen.dart';
-import 'package:grocery_app/database/app_database.dart';
-import 'package:grocery_app/models/user.dart';
+import 'package:grocery_app/database/database_provider.dart';
 import 'package:grocery_app/screens/sign_up_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:grocery_app/database/database_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -42,9 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
       final db = await DatabaseProvider.database;
@@ -74,53 +70,64 @@ class _LoginScreenState extends State<LoginScreen> {
         ).showSnackBar(SnackBar(content: Text('Lỗi khi đăng nhập: $e')));
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 40, 223, 122),
-      appBar: AppBar(
-        title: const Text('Đăng nhập'),
-        backgroundColor: const Color.fromARGB(255, 40, 223, 122),
-        centerTitle: true,
-      ),
+      backgroundColor: const Color.fromARGB(255, 79, 207, 179),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(24),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const SizedBox(height: 30),
-              const CircleAvatar(
-                radius: 50,
-                backgroundImage: AssetImage("assets/images/avata.jpg"),
+              const SizedBox(height: 40),
+              SizedBox(
+                height: 180,
+                child: Image.asset(
+                  "assets/images/grocery-removebg-preview.png",
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                "Grocery",
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orangeAccent,
+                ),
+              ),
+              const Text(
+                "DELIVERY APP",
+                style: TextStyle(
+                  fontSize: 16,
+                  letterSpacing: 1.5,
+                  color: Colors.white,
+                ),
               ),
               const SizedBox(height: 30),
               TextField(
                 controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Tên đăng nhập',
-                  prefixIcon: Icon(Icons.person),
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  hintText: 'Email or Phone',
+                  prefixIcon: const Icon(Icons.person),
                   filled: true,
                   fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               TextField(
                 controller: _passwordController,
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
-                  labelText: 'Mật khẩu',
+                  hintText: 'Password',
                   prefixIcon: const Icon(Icons.lock),
-                  border: const OutlineInputBorder(),
                   filled: true,
                   fillColor: Colors.white,
                   suffixIcon: IconButton(
@@ -129,35 +136,41 @@ class _LoginScreenState extends State<LoginScreen> {
                           ? Icons.visibility
                           : Icons.visibility_off,
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
+                    onPressed:
+                        () => setState(
+                          () => _obscurePassword = !_obscurePassword,
+                        ),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide.none,
                   ),
                 ),
               ),
               const SizedBox(height: 20),
+              const SizedBox(height: 10),
               ElevatedButton(
                 onPressed: _isLoading ? null : _loginWithName,
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 40,
-                    vertical: 12,
-                  ),
-                  backgroundColor: Colors.blueAccent,
+                  backgroundColor: const Color(0xFF015C4E),
                   foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 14,
+                    horizontal: 80,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
                 ),
                 child:
                     _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text(
-                          'Đăng nhập',
-                          style: TextStyle(fontSize: 16),
-                        ),
+                        : const Text("Login", style: TextStyle(fontSize: 16)),
               ),
               const SizedBox(height: 20),
-              TextButton(
+              const Text("or", style: TextStyle(color: Colors.white70)),
+              const SizedBox(height: 10),
+              OutlinedButton(
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -166,11 +179,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   );
                 },
-                style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
-                child: const Text(
-                  'Tạo tài khoản mới',
-                  style: TextStyle(fontSize: 14),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 14,
+                    horizontal: 60,
+                  ),
+                  side: const BorderSide(color: Colors.white),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
                 ),
+                child: const Text("Create an account"),
               ),
             ],
           ),

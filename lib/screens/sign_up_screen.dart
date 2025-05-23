@@ -34,8 +34,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     String name = _nameController.text.trim();
     String password = _passwordController.text;
-
-    // Mặc định gán email là tên + @local (vì trường trong DB cần có email)
     String email = '${name.replaceAll(' ', '_').toLowerCase()}@local.com';
     String phone = '';
     String role = 'user';
@@ -64,79 +62,146 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Center(child: Text('Sign Up')),
-        backgroundColor: const Color.fromARGB(255, 8, 173, 77),
-      ),
-      body: Container(
-        padding: const EdgeInsets.all(16.0),
-        color: const Color.fromARGB(255, 8, 173, 77),
-        child: Form(
-          key: _formKey,
+      backgroundColor: const Color(0xFF2B967F),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
           child: Column(
             children: [
-              // Tên
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Full Name',
-                  prefixIcon: const Icon(Icons.person),
-                  border: const OutlineInputBorder(),
-                  filled: true,
-                  fillColor: Colors.white,
+              const SizedBox(height: 40),
+              SizedBox(
+                height: 160,
+                child: Image.asset(
+                  "assets/images/grocery-removebg-preview.png",
                 ),
-                validator:
-                    (value) =>
-                        value == null || value.trim().isEmpty
-                            ? 'Nhập họ tên'
-                            : null,
               ),
               const SizedBox(height: 10),
-
-              // Mật khẩu
-              TextFormField(
-                controller: _passwordController,
-                obscureText: _obscurePassword,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: const Icon(Icons.lock),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
-                  ),
-                  border: const OutlineInputBorder(),
-                  filled: true,
-                  fillColor: Colors.white,
+              const Text(
+                "Grocery",
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orangeAccent,
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) return 'Nhập mật khẩu';
-                  if (value.length < 6) return 'Ít nhất 6 ký tự';
-                  return null;
-                },
               ),
-              const SizedBox(height: 20),
-
-              // Nút đăng ký
-              ElevatedButton(
-                onPressed: _signUp,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: const Color.fromARGB(255, 8, 173, 77),
-                  textStyle: const TextStyle(fontSize: 16),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 40,
-                    vertical: 12,
-                  ),
+              const Text(
+                "CREATE ACCOUNT",
+                style: TextStyle(
+                  fontSize: 16,
+                  letterSpacing: 1.5,
+                  color: Colors.white,
                 ),
-                child: const Text('Sign Up'),
+              ),
+              const SizedBox(height: 30),
+              Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    // Họ tên
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: InputDecoration(
+                        hintText: 'Full Name',
+                        prefixIcon: const Icon(Icons.person),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      validator:
+                          (value) =>
+                              value == null || value.trim().isEmpty
+                                  ? 'Nhập họ tên'
+                                  : null,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Mật khẩu
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: _obscurePassword,
+                      decoration: InputDecoration(
+                        hintText: 'Password',
+                        prefixIcon: const Icon(Icons.lock),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Nhập mật khẩu';
+                        }
+                        if (value.length < 6) {
+                          return 'Ít nhất 6 ký tự';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Nút Sign Up
+                    ElevatedButton(
+                      onPressed: _signUp,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF015C4E),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                          horizontal: 80,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      child: const Text(
+                        "Sign Up",
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Quay lại đăng nhập
+                    OutlinedButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const LoginScreen(),
+                          ),
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                          horizontal: 50,
+                        ),
+                        side: const BorderSide(color: Colors.white),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      child: const Text("Already have an account? Login"),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
