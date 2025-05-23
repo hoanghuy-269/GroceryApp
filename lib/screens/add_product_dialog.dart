@@ -13,31 +13,38 @@ Future<void> showAddProductDialog({
   final priceController = TextEditingController();
   final quantityController = TextEditingController();
   final descriptionController = TextEditingController();
-  final loaiController = TextEditingController();
   final statusController = TextEditingController();
   final discountController = TextEditingController();
 
   File? pickedImageFile;
   String? savedImagePath;
+  int? selectedLoaiId;
+
+  final loaiOptions = [
+    {'id': 1, 'name': 'Đồ Ăn'},
+    {'id': 2, 'name': 'Nước Uống'},
+    {'id': 3, 'name': 'Mì - Cháo Ăn liền'},
+    {'id': 4, 'name': 'Gia vị'},
+    {'id': 5, 'name': 'Đồ dùng học tập'},
+    {'id': 6, 'name': 'Đồ dùng trong gia đình'},
+  ];
+
+  InputDecoration inputDecoration(String label) {
+    return InputDecoration(labelText: label, border: OutlineInputBorder());
+  }
 
   Future<void> pickAndSaveImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       final tempFile = File(pickedFile.path);
-
       final appDir = await getApplicationDocumentsDirectory();
-
       final imagesDir = Directory('${appDir.path}/images');
       if (!await imagesDir.exists()) {
         await imagesDir.create(recursive: true);
       }
-
-      // Tạo tên file mới để tránh trùng
       final fileName = p.basename(pickedFile.path);
       final savedFile = await tempFile.copy('${imagesDir.path}/$fileName');
-      print('Image saved to: ${savedFile.path}');
-
       pickedImageFile = savedFile;
       savedImagePath = savedFile.path;
     }
@@ -89,37 +96,42 @@ Future<void> showAddProductDialog({
                   SizedBox(height: 12),
                   TextField(
                     controller: nameController,
-                    decoration: InputDecoration(labelText: 'Tên sản phẩm'),
+                    decoration: inputDecoration('Tên sản phẩm *'),
                   ),
+                  SizedBox(height: 8),
                   TextField(
                     controller: priceController,
-                    decoration: InputDecoration(labelText: 'Giá'),
+                    decoration: inputDecoration('Giá *'),
                     keyboardType: TextInputType.number,
                   ),
+                  SizedBox(height: 8),
                   TextField(
                     controller: quantityController,
-                    decoration: InputDecoration(labelText: 'Số lượng'),
+                    decoration: inputDecoration('Số lượng *'),
                     keyboardType: TextInputType.number,
                   ),
+                  SizedBox(height: 8),
+                  DropdownButtonFormField<int>(
+                    value: selectedLoaiId,
+                    decoration: inputDecoration('Loại sản phẩm *'),
+                    items:
+                        loaiOptions.map((option) {
+                          return DropdownMenuItem<int>(
+                            value: option['id'] as int,
+                            child: Text(option['name'] as String),
+                          );
+                        }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedLoaiId = value;
+                      });
+                    },
+                  ),
+                  SizedBox(height: 8),
                   TextField(
                     controller: descriptionController,
-                    decoration: InputDecoration(labelText: 'Mô tả'),
+                    decoration: inputDecoration('Mô tả'),
                     maxLines: 3,
-                  ),
-                  TextField(
-                    controller: loaiController,
-                    decoration: InputDecoration(
-                      labelText: 'Loại (ID số nguyên)',
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                  TextField(
-                    controller: statusController,
-                    decoration: InputDecoration(labelText: 'Trạng thái'),
-                  ),
-                   TextField(
-                    controller: discountController,
-                    decoration: InputDecoration(labelText: 'Giảm giá'),
                   ),
                 ],
               ),
@@ -131,15 +143,27 @@ Future<void> showAddProductDialog({
               ),
               ElevatedButton(
                 onPressed: () {
+                  if (nameController.text.isEmpty ||
+                      priceController.text.isEmpty ||
+                      quantityController.text.isEmpty ||
+                      selectedLoaiId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Vui lòng nhập đủ các trường bắt buộc!'),
+                      ),
+                    );
+                    return;
+                  }
+
                   final newProduct = Product(
                     id: null,
-                    name: nameController.text,
+                    name: nameController.text.trim(),
                     price: double.tryParse(priceController.text) ?? 0.0,
                     imgURL: savedImagePath ?? '',
                     quantity: int.tryParse(quantityController.text) ?? 0,
-                    description: descriptionController.text,
-                    loai: int.tryParse(loaiController.text) ?? 0,
-                    status: statusController.text,
+                    description: descriptionController.text.trim(),
+                    loai: selectedLoaiId!,
+                    status: statusController.text.trim(),
                     lastUpdated: DateTime.now(),
                   );
 

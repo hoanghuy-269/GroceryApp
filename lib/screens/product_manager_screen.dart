@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Thêm import
+import 'package:shared_preferences/shared_preferences.dart';
 import '../database/app_database.dart';
 import '../models/product.dart';
 import 'add_product_dialog.dart';
@@ -74,108 +74,144 @@ class _ProductScreenState extends State<ProductManagementScreen> {
     );
   }
 
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Xác nhận đăng xuất'),
+            content: const Text('Bạn có chắc chắn muốn đăng xuất không?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Hủy'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _logout();
+                },
+                child: const Text('Đăng xuất'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  String _getLoaiText(int loai) {
+    switch (loai) {
+      case 1:
+        return 'Đồ Ăn';
+      case 2:
+        return 'Nước Uống';
+      case 3:
+        return 'Mì - Cháo Ăn liền';
+      case 4:
+        return 'Gia vị';
+      case 5:
+        return 'Đồ dùng học tập';
+      case 6:
+        return 'Đồ dùng trong gia đình';
+      default:
+        return 'Khác';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Quản lý sản phẩm'),
+        title: const Text('Quản lý sản phẩm'),
+        backgroundColor: Colors.green[700],
         actions: [
-          ElevatedButton(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: const Text('Xác nhận đăng xuất'),
-                    content: const Text(
-                      'Bạn có chắc chắn muốn đăng xuất không?',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text('Hủy'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          _logout();
-                        },
-                        child: const Text('Đăng xuất'),
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-            child: const Text('Log Out'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.blueAccent,
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-              textStyle: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Đăng xuất',
+            onPressed: _showLogoutDialog,
           ),
         ],
       ),
 
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Tìm sản phẩm...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
+          Card(
+            margin: const EdgeInsets.all(10),
+            elevation: 3,
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                children: [
+                  TextField(
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.search),
+                      hintText: 'Tìm sản phẩm...',
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: onSearchChanged,
+                  ),
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField<int>(
+                    decoration: const InputDecoration(
+                      labelText: 'Phân loại',
+                      border: OutlineInputBorder(),
+                    ),
+                    value: selectedLoai,
+                    onChanged: onLoaiChanged,
+                    items: const [
+                      DropdownMenuItem(value: null, child: Text('Tất cả')),
+                      DropdownMenuItem(value: 1, child: Text('Đồ Ăn')),
+                      DropdownMenuItem(value: 2, child: Text('Nước Uống')),
+                      DropdownMenuItem(
+                        value: 3,
+                        child: Text('Mì - Cháo Ăn liền'),
+                      ),
+                      DropdownMenuItem(value: 4, child: Text('Gia vị')),
+                      DropdownMenuItem(
+                        value: 5,
+                        child: Text('Đồ dùng học tập'),
+                      ),
+                      DropdownMenuItem(
+                        value: 6,
+                        child: Text('Đồ dùng trong gia đình'),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              onChanged: onSearchChanged,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: DropdownButtonFormField<int>(
-              decoration: InputDecoration(
-                labelText: 'Phân loại',
-                border: OutlineInputBorder(),
-              ),
-              value: selectedLoai,
-              items: [
-                DropdownMenuItem(value: null, child: Text('Tất cả')),
-                DropdownMenuItem(value: 1, child: Text('Đồ Ăn')),
-                DropdownMenuItem(value: 2, child: Text('Nước Uống')),
-                DropdownMenuItem(value: 3, child: Text('Mì - Cháo Ăn liền')),
-                DropdownMenuItem(value: 4, child: Text('Gia vị')),
-                DropdownMenuItem(value: 5, child: Text('Đồ dùng học tập')),
-                DropdownMenuItem(
-                  value: 6,
-                  child: Text('Đồ dùng trong gia đình'),
-                ),
-              ],
-              onChanged: onLoaiChanged,
             ),
           ),
           Expanded(
             child:
                 displayedProducts.isEmpty
-                    ? Center(child: Text('Không tìm thấy sản phẩm'))
+                    ? const Center(child: Text('Không tìm thấy sản phẩm'))
                     : ListView.builder(
                       itemCount: displayedProducts.length,
                       itemBuilder: (context, index) {
                         final p = displayedProducts[index];
                         return Card(
-                          margin: EdgeInsets.symmetric(
+                          margin: const EdgeInsets.symmetric(
                             horizontal: 10,
                             vertical: 5,
                           ),
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                           child: ListTile(
-                            title: Text(p.name),
-                            subtitle: Text(
-                              'Giá: ${p.price} - SL: ${p.quantity} - Loại: ${p.loai}',
+                            contentPadding: const EdgeInsets.all(10),
+                            title: Text(
+                              p.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Giá: ${p.price}'),
+                                Text('Số lượng: ${p.quantity}'),
+                                Text('Loại: ${_getLoaiText(p.loai)}'),
+                              ],
                             ),
                             trailing: PopupMenuButton<String>(
                               onSelected: (value) {
@@ -202,7 +238,7 @@ class _ProductScreenState extends State<ProductManagementScreen> {
                                 }
                               },
                               itemBuilder:
-                                  (context) => [
+                                  (context) => const [
                                     PopupMenuItem(
                                       value: 'edit',
                                       child: Text('Sửa'),
@@ -230,7 +266,8 @@ class _ProductScreenState extends State<ProductManagementScreen> {
             },
           );
         },
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
+        backgroundColor: Colors.green[700],
       ),
     );
   }
