@@ -12,7 +12,13 @@ import 'package:intl/intl.dart';
 class InvoiceScreen extends StatefulWidget {
   final List<CartItem> products;
 
-  const InvoiceScreen({Key? key, required this.products, Customer? customer, required int pointsUsed, required double totalAmount}) : super(key: key);
+  const InvoiceScreen({
+    Key? key,
+    required this.products,
+    Customer? customer,
+    required int pointsUsed,
+    required double totalAmount,
+  }) : super(key: key);
 
   @override
   _InvoiceScreenState createState() => _InvoiceScreenState();
@@ -33,13 +39,13 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
   }
 
   double get totalAmount => widget.products.fold(
-        0.0,
-        (sum, item) => sum + item.price * item.quantity,
-      );
+    0.0,
+    (sum, item) => sum + item.price * item.quantity,
+  );
 
   String formatCurrency(double value) {
     final formatter = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
-    return formatter.format(value * 1000); // Nhân 1000 để hiển thị giá đúng định dạng
+    return formatter.format(value);
   }
 
   Future<void> _completeOrder() async {
@@ -54,24 +60,30 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
       print('Ngày: ${order.orderDate}');
       print('Tổng cộng: ${formatCurrency(total)}');
 
-      final orderItems = widget.products.map((cartItem) {
-        return OrderItem(
-          id: null,
-          orderId: orderId,
-          productId: cartItem.productId,
-          quantity: cartItem.quantity,
-          price: cartItem.price,
-          discount: cartItem.discount,
-        );
-      }).toList();
+      final orderItems =
+          widget.products.map((cartItem) {
+            return OrderItem(
+              id: null,
+              orderId: orderId,
+              productId: cartItem.productId,
+              quantity: cartItem.quantity,
+              price: cartItem.price,
+              discount: cartItem.discount,
+            );
+          }).toList();
 
       for (var item in orderItems) {
         await _database.orderItemDao.insertOrderItem(item);
 
-        final product = await _database.productDao.findProductById(item.productId);
+        final product = await _database.productDao.findProductById(
+          item.productId,
+        );
         if (product != null) {
           final newQuantity = product.quantity - item.quantity;
-          await _database.productDao.updateQuantity(item.productId, newQuantity);
+          await _database.productDao.updateQuantity(
+            item.productId,
+            newQuantity,
+          );
         }
       }
 
@@ -86,9 +98,9 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
         const SnackBar(content: Text('Đơn hàng đã được hoàn thành!')),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
     }
   }
 
@@ -98,7 +110,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
       appBar: AppBar(
         title: const Text('Hóa Đơn Thanh Toán'),
         centerTitle: true,
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: const Color.fromARGB(255, 50, 209, 130),
         elevation: 4,
       ),
       body: Padding(
@@ -117,7 +129,10 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -199,10 +214,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                     children: [
                       const Text(
                         'Thời gian đặt:',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
                       ),
                       Text(
                         DateFormat('hh:mm a, dd/MM/yyyy').format(orderTime),
@@ -221,7 +233,19 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Tổng cộng:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  'Tổng cộng:',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  formatCurrency(totalAmount),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 28),
             SizedBox(
               width: double.infinity,
@@ -229,7 +253,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
               child: ElevatedButton(
                 onPressed: _completeOrder,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple,
+                  backgroundColor: const Color.fromARGB(255, 51, 219, 155),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),

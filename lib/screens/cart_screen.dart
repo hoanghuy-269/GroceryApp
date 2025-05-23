@@ -22,7 +22,8 @@ class _CartScreenState extends State<CartScreen> {
   late AppDatabase _database;
   late CustomerDao _customerDao;
   Customer? _selectedCustomer;
-  double _discountFromPoints = 0.0;  int _pointsUsed = 0;
+  double _discountFromPoints = 0.0;
+  int _pointsUsed = 0;
 
   @override
   void initState() {
@@ -41,27 +42,44 @@ class _CartScreenState extends State<CartScreen> {
 
   // Hàm tăng số lượng sản phẩm trong giỏ hàng
   void _incrementQuantity(int index) async {
-    setState(() {
-      final item = _cartItems[index];
-      // Tạo mới CartItem với số lượng tăng lên 1
-      _cartItems[index] = CartItem(
-        id: item.id,
-        productId: item.productId,
-        productName: item.productName,
-        price: item.price,
-        imgURL: item.imgURL,
-        quantity: item.quantity + 1,
-        discount: item.discount,
-      );
-    });
+    final item = _cartItems[index];
+
     try {
-      // Cập nhật sản phẩm trong cơ sở dữ liệu
-      await _database.cartItemDao.updateCartItem(_cartItems[index]);
-    } catch (e) {
-      // Hiển thị thông báo lỗi nếu cập nhật thất bại
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi khi cập nhật giỏ hàng')),
+      // Lấy thông tin sản phẩm tương ứng từ DB theo productId
+      final product = await _database.productDao.findProductById(
+        item.productId,
       );
+
+      if (product == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Sản phẩm không tồn tại')));
+        return;
+      }
+
+      if (item.quantity < product.quantity) {
+        setState(() {
+          _cartItems[index] = CartItem(
+            id: item.id,
+            productId: item.productId,
+            productName: item.productName,
+            price: item.price,
+            imgURL: item.imgURL,
+            quantity: item.quantity + 1,
+            discount: item.discount,
+          );
+        });
+
+        await _database.cartItemDao.updateCartItem(_cartItems[index]);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Đã đạt số lượng tối đa trong kho')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi khi cập nhật giỏ hàng')));
     }
   }
 
@@ -86,9 +104,9 @@ class _CartScreenState extends State<CartScreen> {
         await _database.cartItemDao.updateCartItem(_cartItems[index]);
       } catch (e) {
         // Hiển thị thông báo lỗi nếu cập nhật thất bại
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi khi cập nhật giỏ hàng')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Lỗi khi cập nhật giỏ hàng')));
       }
     } else {
       // Nếu số lượng bằng 1, xóa sản phẩm khỏi giỏ hàng
@@ -100,9 +118,9 @@ class _CartScreenState extends State<CartScreen> {
         await _database.cartItemDao.deleteCartItem(item);
       } catch (e) {
         // Hiển thị thông báo lỗi nếu xóa thất bại
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi khi xóa sản phẩm')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Lỗi khi xóa sản phẩm')));
       }
     }
   }
@@ -113,9 +131,9 @@ class _CartScreenState extends State<CartScreen> {
     final customers = await _customerDao.getAllCustomers();
     if (customers.isEmpty) {
       // Hiển thị thông báo nếu không có khách hàng
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Không có khách hàng nào")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Không có khách hàng nào")));
       return;
     }
 
@@ -156,11 +174,15 @@ class _CartScreenState extends State<CartScreen> {
 
   // Hiển thị dialog để nhập số điểm muốn sử dụng
   Future<void> _showUsePointsDialog(Customer customer) async {
-    final pointsController = TextEditingController(); // Controller cho TextField nhập điểm
+    final pointsController =
+        TextEditingController(); // Controller cho TextField nhập điểm
     // Tính tổng tiền trước giảm giá
     final subTotal = _cartItems.fold(
       0.0,
-      (total, item) => total + item.price * item.quantity - (item.discount ?? 0.0) * item.quantity,
+      (total, item) =>
+          total +
+          item.price * item.quantity -
+          (item.discount ?? 0.0) * item.quantity,
     );
 
     showDialog<void>(
@@ -173,10 +195,14 @@ class _CartScreenState extends State<CartScreen> {
             children: [
               Text("Khách hàng: ${customer.name}"), // Tên khách hàng
               Text("Điểm: ${customer.points}"), // Điểm hiện có
-              Text("Hóa đơn: ${subTotal.toStringAsFixed(0)} VNĐ"), // Tổng tiền hóa đơn
+              Text(
+                "Hóa đơn: ${subTotal.toStringAsFixed(0)} VNĐ",
+              ), // Tổng tiền hóa đơn
               TextField(
                 controller: pointsController,
-                decoration: InputDecoration(labelText: "Số điểm"), // Nhập số điểm
+                decoration: InputDecoration(
+                  labelText: "Số điểm",
+                ), // Nhập số điểm
                 keyboardType: TextInputType.number, // Bàn phím số
               ),
             ],
@@ -188,7 +214,9 @@ class _CartScreenState extends State<CartScreen> {
             ),
             TextButton(
               onPressed: () async {
-                final pointsToUse = int.tryParse(pointsController.text); // Lấy số điểm nhập vào
+                final pointsToUse = int.tryParse(
+                  pointsController.text,
+                ); // Lấy số điểm nhập vào
                 if (pointsToUse == null || pointsToUse <= 0) {
                   // Kiểm tra số điểm hợp lệ
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -198,13 +226,13 @@ class _CartScreenState extends State<CartScreen> {
                 }
                 if (pointsToUse > customer.points) {
                   // Kiểm tra nếu số điểm vượt quá điểm hiện có
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Không đủ điểm")),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text("Không đủ điểm")));
                   return;
                 }
                 // 1 điểm = 1% giảm giá
-                double discount = subTotal * (pointsToUse / 100.0);
+                double discount = subTotal * (pointsToUse * 0.1);
                 if (discount > subTotal) {
                   // Kiểm tra nếu giảm giá vượt quá tổng hóa đơn
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -225,7 +253,11 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   // Hàm áp dụng điểm để giảm giá
-  Future<void> _applyPoints(Customer customer, int pointsToUse, double discount) async {
+  Future<void> _applyPoints(
+    Customer customer,
+    int pointsToUse,
+    double discount,
+  ) async {
     setState(() {
       _selectedCustomer = customer; // Lưu khách hàng đã chọn
       _discountFromPoints = discount; // Lưu số tiền giảm giá
@@ -252,7 +284,10 @@ class _CartScreenState extends State<CartScreen> {
     // Tính tổng tiền trước giảm giá
     final subTotal = _cartItems.fold(
       0.0,
-      (total, item) => total + item.price * item.quantity - (item.discount ?? 0.0) * item.quantity,
+      (total, item) =>
+          total +
+          item.price * item.quantity -
+          (item.discount ?? 0.0) * item.quantity,
     );
     // Tính tổng tiền sau giảm giá
     final totalCost = subTotal - _discountFromPoints;
@@ -266,77 +301,78 @@ class _CartScreenState extends State<CartScreen> {
             // Kiểm tra nếu giỏ hàng trống
             _cartItems.isEmpty
                 ? Expanded(
-                    child: Center(
-                      child: Text(
-                        'Giỏ hàng trống',
-                        style: TextStyle(fontSize: 18, color: Colors.grey[600]),
-                      ),
-                    ),
-                  )
-                : Expanded(
-                    // Hiển thị danh sách sản phẩm trong giỏ hàng
-                    child: ListView.builder(
-                      itemCount: _cartItems.length,
-                      itemBuilder: (context, index) {
-                        final item = _cartItems[index];
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: Row(
-                              children: [
-                                // Hiển thị ảnh sản phẩm
-                                _buildProductImage(item.imgURL),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      // Tên sản phẩm
-                                      Text(
-                                        item.productName,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      // Giá sản phẩm
-                                      Text(
-                                        'Price: ${item.price.toStringAsFixed(3)} đ',
-                                      ),
-                                      // Hiển thị giảm giá nếu có
-                                      if (item.discount != null && item.discount! > 0)
-                                        Text(
-                                          'Discount: ${(item.discount! * item.quantity).toStringAsFixed(3)} đ',
-                                          style: TextStyle(color: Colors.green),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                                // Nút tăng/giảm số lượng
-                                Row(
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.remove),
-                                      onPressed: () => _decrementQuantity(index),
-                                    ),
-                                    Text(
-                                      '${item.quantity}',
-                                      style: const TextStyle(fontSize: 16),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.add),
-                                      onPressed: () => _incrementQuantity(index),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
+                  child: Center(
+                    child: Text(
+                      'Giỏ hàng trống',
+                      style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                     ),
                   ),
+                )
+                : Expanded(
+                  // Hiển thị danh sách sản phẩm trong giỏ hàng
+                  child: ListView.builder(
+                    itemCount: _cartItems.length,
+                    itemBuilder: (context, index) {
+                      final item = _cartItems[index];
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Row(
+                            children: [
+                              // Hiển thị ảnh sản phẩm
+                              _buildProductImage(item.imgURL),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Tên sản phẩm
+                                    Text(
+                                      item.productName,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    // Giá sản phẩm
+                                    Text(
+                                      'Price: ${item.price.toStringAsFixed(0)} đ',
+                                    ),
+                                    // Hiển thị giảm giá nếu có
+                                    if (item.discount != null &&
+                                        item.discount! > 0)
+                                      Text(
+                                        'Discount: ${(item.discount! * item.quantity).toStringAsFixed(0)} đ',
+                                        style: TextStyle(color: Colors.green),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              // Nút tăng/giảm số lượng
+                              Row(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.remove),
+                                    onPressed: () => _decrementQuantity(index),
+                                  ),
+                                  Text(
+                                    '${item.quantity}',
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.add),
+                                    onPressed: () => _incrementQuantity(index),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
             const Divider(), // Đường phân cách
             // Hiển thị tổng tiền trước giảm giá
             _buildPriceRow('Sub-Total:', subTotal),
@@ -358,21 +394,23 @@ class _CartScreenState extends State<CartScreen> {
             const SizedBox(height: 10),
             // Nút chuyển sang màn hình thanh toán
             ElevatedButton(
-              onPressed: _cartItems.isEmpty
-                  ? null
-                  : () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => PayScreen(
-                            totalAmount: totalCost, // Tổng tiền
-                            products: _cartItems, // Danh sách sản phẩm
-                            customer: _selectedCustomer, // Khách hàng
-                            pointsUsed: _pointsUsed, // Điểm đã sử dụng
+              onPressed:
+                  _cartItems.isEmpty
+                      ? null
+                      : () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (_) => PayScreen(
+                                  totalAmount: totalCost, // Tổng tiền
+                                  products: _cartItems, // Danh sách sản phẩm
+                                  customer: _selectedCustomer, // Khách hàng
+                                  pointsUsed: _pointsUsed, // Điểm đã sử dụng
+                                ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 50),
               ),
@@ -399,7 +437,7 @@ class _CartScreenState extends State<CartScreen> {
             ),
           ),
           Text(
-            '${amount.toStringAsFixed(3)} đ', // Định dạng số tiền
+            '${amount.toStringAsFixed(0)} đ',
             style: TextStyle(
               fontSize: isTotal ? 18 : 16,
               fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
@@ -410,20 +448,21 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  // Hàm hiển thị ảnh sản phẩm
   Widget _buildProductImage(String imgURL) {
-    final file = File(imgURL); // Tạo đối tượng File từ đường dẫn ảnh
+    final file = File(imgURL);
     return ClipRRect(
-      borderRadius: BorderRadius.circular(8), // Bo góc ảnh
-      child: file.existsSync() // Kiểm tra file ảnh có tồn tại không
-          ? Image.file(
-              file,
-              width: 80,
-              height: 80,
-              fit: BoxFit.cover, // Hiển thị ảnh vừa khung
-              errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 80), // Hiển thị icon nếu lỗi
-            )
-          : const Icon(Icons.broken_image, size: 80), // Hiển thị icon nếu file không tồn tại
+      borderRadius: BorderRadius.circular(8),
+      child:
+          file.existsSync()
+              ? Image.file(
+                file,
+                width: 80,
+                height: 80,
+                fit: BoxFit.cover,
+                errorBuilder:
+                    (_, __, ___) => const Icon(Icons.broken_image, size: 80),
+              )
+              : const Icon(Icons.broken_image, size: 80),
     );
   }
 }
