@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_app/database/app_database.dart';
 import 'package:grocery_app/database/database_provider.dart';
+import 'package:grocery_app/models/Customer.dart';
 import 'package:grocery_app/models/cart.dart';
 import 'package:grocery_app/models/order_item.dart';
 import 'package:grocery_app/dao/product_dao.dart';
@@ -11,7 +12,7 @@ import 'package:intl/intl.dart';
 class InvoiceScreen extends StatefulWidget {
   final List<CartItem> products;
 
-  const InvoiceScreen({Key? key, required this.products}) : super(key: key);
+  const InvoiceScreen({Key? key, required this.products, Customer? customer, required int pointsUsed, required double totalAmount}) : super(key: key);
 
   @override
   _InvoiceScreenState createState() => _InvoiceScreenState();
@@ -215,6 +216,12 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                 ],
               ),
             ),
+            const Divider(thickness: 2),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Tổng cộng:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             const SizedBox(height: 28),
             SizedBox(
               width: double.infinity,

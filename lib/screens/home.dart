@@ -101,7 +101,6 @@ class _HomeState extends State<Home> {
               (p) => p.name.toLowerCase().contains(searchQuery.toLowerCase()),
             )
             .toList();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("Grocery App"),
@@ -239,6 +238,9 @@ class _HomeState extends State<Home> {
     );
   }
 }
+
+
+
 
 class ProductCard extends StatelessWidget {
   final Product product;
